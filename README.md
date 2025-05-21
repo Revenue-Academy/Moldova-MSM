@@ -1,2 +1,2 @@
-# Moldova-MSM
-Moldova Microsim Model
+# moldova
+Moldova MSM model
