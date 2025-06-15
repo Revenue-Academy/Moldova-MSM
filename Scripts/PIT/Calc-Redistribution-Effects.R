@@ -1,6 +1,6 @@
 'Re-Distribution tables'
 
-PIT_BU_selected
+#PIT_BU_selected
 
 # # # 1. Functions for calculation -----------------------------------------------
 # extract_filtered_re_df_fun <- function(PIT_BU_gross_list, forecast_horizon, simulation_year,
@@ -21,7 +21,7 @@ PIT_BU_selected
 #                        "gross_income",
 #                        # "total_taxbase",
 #                        # "total_net",
-#                        "pit_sum")
+#                        "pitax")
 #   
 #   # Check for missing columns and issue a warning if any are not found.
 #   missing_columns <- setdiff(columns_to_keep, colnames(PIT_BU_simulation_year_df))
@@ -58,7 +58,7 @@ PIT_BU_selected
        # PIT_BU_simulation_year_df <- extract_filtered_re_df_fun(PIT_BU_gross_list, forecast_horizon, simulation_year)
         
         PIT_BU_simulation_year_df<-PIT_BU_selected%>%
-          filter(pit_sum>0)
+          filter(pitax>0)
         
         # Top 1
         
@@ -68,10 +68,10 @@ PIT_BU_selected
           # Keep only the group with the highest gross_income
           filter(percentile == 100) %>%
           # Sum the PIT for observations in this percentile group
-          summarise(total_pitax = sum(pit_sum, na.rm = TRUE))
+          summarise(total_pitax = sum(pitax, na.rm = TRUE))
         
         
-        share_top1_bu<-result$total_pitax/sum(PIT_BU_simulation_year_df$pit_sum)
+        share_top1_bu<-result$total_pitax/sum(PIT_BU_simulation_year_df$pitax)
         
         
         
@@ -88,13 +88,13 @@ PIT_BU_selected
       
       
       # Calculate the Kakwani index
-      ineq<-calcSConc(PIT_BU_simulation_year_df$pit_sum, PIT_BU_simulation_year_df$gross_income)
+      ineq<-calcSConc(PIT_BU_simulation_year_df$pitax, PIT_BU_simulation_year_df$gross_income)
       kakwani_index_BU <- round(ineq$ineq$index - gini_income_gross_bu, 4)
       kakwani_index_BU <- unname(kakwani_index_BU)
       
       
       
-      etr_bu <- sum(PIT_BU_simulation_year_df$pit_sum) / sum(PIT_BU_simulation_year_df$gross_income)
+      etr_bu <- sum(PIT_BU_simulation_year_df$pitax) / sum(PIT_BU_simulation_year_df$gross_income)
       
       # calcAtkinson(PIT_BU_simulation_year_df$gross_income, epsilon = 1)
       
@@ -143,7 +143,7 @@ PIT_BU_selected
       
       
       PIT_SIM_simulation_year_df<-PIT_SIM_selected%>%
-        filter(pit_sum>0)
+        filter(pitax>0)
       
       
       # TOP 1
@@ -154,10 +154,10 @@ PIT_BU_selected
         # Keep only the group with the highest gross_income
         filter(percentile == 100) %>%
         # Sum the PIT for observations in this percentile group
-        summarise(total_pitax = sum(pit_sum, na.rm = TRUE))
+        summarise(total_pitax = sum(pitax, na.rm = TRUE))
       
       
-      share_top1_sim<-result$total_pitax/sum(PIT_SIM_simulation_year_df$pit_sum)
+      share_top1_sim<-result$total_pitax/sum(PIT_SIM_simulation_year_df$pitax)
       
       
       
@@ -173,13 +173,13 @@ PIT_BU_selected
       
       
       # Calculate the Kakwani index
-      ineq<-calcSConc(PIT_SIM_simulation_year_df$pit_sum, PIT_SIM_simulation_year_df$gross_income)
+      ineq<-calcSConc(PIT_SIM_simulation_year_df$pitax, PIT_SIM_simulation_year_df$gross_income)
       kakwani_index_SIM <- round(ineq$ineq$index - gini_income_gross_sim, 4)
       kakwani_index_SIM <- unname(kakwani_index_SIM)
       
       
       
-      etr_SIM <- sum(PIT_SIM_simulation_year_df$pit_sum) / sum(PIT_SIM_simulation_year_df$gross_income)
+      etr_SIM <- sum(PIT_SIM_simulation_year_df$pitax) / sum(PIT_SIM_simulation_year_df$gross_income)
       
       # calcAtkinson(PIT_SIM_simulation_year_df$gross_income, epsilon = 1)
       

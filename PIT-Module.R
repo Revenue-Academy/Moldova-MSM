@@ -24,6 +24,7 @@ library(tidyr)
 library(RColorBrewer) 
 library(Hmisc)
 library(openxlsx)
+library(forcats)
 
 
 options(scipen = 999)
@@ -49,8 +50,8 @@ ui <- dashboardPage(
                menuSubItem("Main Results", tabName = "MainResultsSimulation", icon = icon("gauge")),
                menuSubItem("Redistribution Effects", tabName = "MainRedistributionEffects", icon = icon("square-poll-vertical")),
                menuSubItem("Distribution Effects", tabName = "MainDistributionTables", icon = icon("chart-column")),
-               menuSubItem("Tax Contribution", tabName = "MainResultBins", icon = icon("chart-pie")),
-               menuSubItem("Tax Expenditures", tabName = "MainResultsTE", icon = icon("wallet"))
+               menuSubItem("Tax Contribution", tabName = "MainResultBins", icon = icon("chart-pie"))
+              # menuSubItem("Tax Expenditures", tabName = "MainResultsTE", icon = icon("wallet"))
       ),
       menuItem("Visualizations", tabName = "CustomsDuties-charts", icon = icon("chart-simple"),
                menuSubItem("Dashboards", tabName = "PIT_Revenues", icon = icon("chart-column"))
@@ -392,7 +393,11 @@ server <- function(input, output, session) {
     ))
     
     future({
-      source("Scripts/PIT/TaxCalculator.R")
+      #source("Scripts/PIT/TaxCalculator.R")
+      source("Scripts/PIT/TaxCalculator_Subset1.R")
+      source("Scripts/PIT/TaxCalculator_Subset2.R")
+      source("Scripts/PIT/TaxCalculator_Subset3.R")
+      source("Scripts/PIT/Calc-AggregationOfData.R")
       source("Scripts/PIT/Calc-Distribution-Effects.R")
       source("Scripts/PIT/Calc-Structure.R")
      # source("Scripts/PIT/Calc-TaxExpenditures.R")
@@ -483,68 +488,68 @@ server <- function(input, output, session) {
   })
   
  
-  output$TE_TABLES <- renderDT({
-    req(input$toggleSimulationRates)  # Ensure the table is only rendered when toggleSimulationRates is TRUE
-    req(reactive_simulation_results())  # Ensure simulation results exist
-    
-    te_summary_selected <- reactive_simulation_results()$te_summary_df %>%
-      select(year, `legal reference`, `current law`, benchmark, `tax expenditure`) %>%
-      filter(`legal reference` != "" & !is.na(`legal reference`))
-    
-    datatable(
-      te_summary_selected,
-      caption = tags$caption(
-        paste("Tax Expenditures in LCU MIL,", min(forecast_horizon), "-", max(forecast_horizon)),
-        class = "table-caption-bold"
-      ),
-      options = list(
-        pageLength = 15,
-        dom = 'Blfrtip',  
-        buttons = list(
-          list(
-            extend = 'copyHtml5',
-            text = 'Copy',
-            filename = 'TE_Projections',
-            exportOptions = list(
-              format = list(
-                body = JS("function(data, row, column, node) {
-                           return $('<div>').html(data).text();  // Strip HTML tags
-                         }")
-              )
-            )
-          ),
-          list(
-            extend = 'csvHtml5',
-            text = 'CSV',
-            filename = 'TE_Projections',
-            exportOptions = list(
-              format = list(
-                body = JS("function(data, row, column, node) {
-                           return $('<div>').html(data).text();  // Strip HTML tags
-                         }")
-              )
-            )
-          ),
-          list(
-            extend = 'print',
-            text = 'Print',
-            exportOptions = list(
-              format = list(
-                body = JS("function(data, row, column, node) {
-                           return $('<div>').html(data).text();  // Strip HTML tags
-                         }")
-              )
-            )
-          )
-        ),
-        autoWidth = TRUE,
-        escape = FALSE,
-        lengthMenu = list(c(10, 25, 50, -1), c(10, 25, 50, "All"))
-      ),
-      rownames = FALSE
-    )
-  })
-  
+  # output$TE_TABLES <- renderDT({
+  #   req(input$toggleSimulationRates)  # Ensure the table is only rendered when toggleSimulationRates is TRUE
+  #   req(reactive_simulation_results())  # Ensure simulation results exist
+  #   
+  #   te_summary_selected <- reactive_simulation_results()$te_summary_df %>%
+  #     select(year, `legal reference`, `current law`, benchmark, `tax expenditure`) %>%
+  #     filter(`legal reference` != "" & !is.na(`legal reference`))
+  #   
+  #   datatable(
+  #     te_summary_selected,
+  #     caption = tags$caption(
+  #       paste("Tax Expenditures in LCU MIL,", min(forecast_horizon), "-", max(forecast_horizon)),
+  #       class = "table-caption-bold"
+  #     ),
+  #     options = list(
+  #       pageLength = 15,
+  #       dom = 'Blfrtip',  
+  #       buttons = list(
+  #         list(
+  #           extend = 'copyHtml5',
+  #           text = 'Copy',
+  #           filename = 'TE_Projections',
+  #           exportOptions = list(
+  #             format = list(
+  #               body = JS("function(data, row, column, node) {
+  #                          return $('<div>').html(data).text();  // Strip HTML tags
+  #                        }")
+  #             )
+  #           )
+  #         ),
+  #         list(
+  #           extend = 'csvHtml5',
+  #           text = 'CSV',
+  #           filename = 'TE_Projections',
+  #           exportOptions = list(
+  #             format = list(
+  #               body = JS("function(data, row, column, node) {
+  #                          return $('<div>').html(data).text();  // Strip HTML tags
+  #                        }")
+  #             )
+  #           )
+  #         ),
+  #         list(
+  #           extend = 'print',
+  #           text = 'Print',
+  #           exportOptions = list(
+  #             format = list(
+  #               body = JS("function(data, row, column, node) {
+  #                          return $('<div>').html(data).text();  // Strip HTML tags
+  #                        }")
+  #             )
+  #           )
+  #         )
+  #       ),
+  #       autoWidth = TRUE,
+  #       escape = FALSE,
+  #       lengthMenu = list(c(10, 25, 50, -1), c(10, 25, 50, "All"))
+  #     ),
+  #     rownames = FALSE
+  #   )
+  # })
+  # 
   
   output$RE_TABLES <- renderDT({
     req(reactive_simulation_results())
@@ -732,7 +737,8 @@ server <- function(input, output, session) {
           
           infoBox(
             title = paste("(Business as usual)", SimulationYear),
-            value = paste(round(infobox_pitax_bu$pitax_bu[1] / 1e03, 1), "(in BIL LCU)"), 
+            #value = paste(round(infobox_pitax_bu$pitax_bu[1] / 1e03, 1), "(in BIL LCU)"),
+            value = paste(round(infobox_pitax_bu$pitax_bu[1], 1), "(in MIL LCU)"), 
             icon = icon("coins"), 
             color = "orange"
           )
@@ -747,7 +753,8 @@ server <- function(input, output, session) {
           
           infoBox(
             title = paste("Simulation PIT revenues", SimulationYear),
-            value = paste(round(infobox_pitax_sim$pitax_sim[1] / 1e03, 1), "(in BIL LCPU)"), 
+            #value = paste(round(infobox_pitax_sim$pitax_sim[1] / 1e03, 1), "(in BIL LCU)"),
+            value = paste(round(infobox_pitax_sim$pitax_sim[1] , 1), "(in MIL LCU)"), 
             icon = icon("chart-line"), 
             color = "light-blue"
           )
@@ -758,26 +765,26 @@ server <- function(input, output, session) {
           tagList(
             fluidRow(
               column(6, plotlyOutput("PIT_RevenuesTotal_plt", height = "400px")),
-              column(6, plotlyOutput("PIT_RevenuesCombo_plt", height = "400px"))
+              column(6, plotlyOutput("WagesRevenues_plt", height = "400px"))
               
             ),
             fluidRow(
-              column(6, plotlyOutput("PIT_RevenuesLabor_plt", height = "400px")),
-              column(6, plotlyOutput("PIT_RevenuesCapital_plt", height = "400px"))
+              column(6, plotlyOutput("TypeOfRevenues_plt", height = "400px")),
+              column(6, plotlyOutput("StructureRevenues_plt", height = "400px"))
             )
           )
         })
         
         output$PIT_RevenuesTotal_plt <- renderPlotly({ charts$PIT_RevenuesTotal_plt })
-        output$PIT_RevenuesCombo_plt <- renderPlotly({ charts$PIT_RevenuesCombo_plt })
-        output$PIT_RevenuesLabor_plt <- renderPlotly({ charts$PIT_RevenuesLabor_plt })
-        output$PIT_RevenuesCapital_plt <- renderPlotly({ charts$PIT_RevenuesCapital_plt })
+        output$WagesRevenues_plt <- renderPlotly({ charts$WagesRevenues_plt })
+        output$TypeOfRevenues_plt <- renderPlotly({ charts$TypeOfRevenues_plt })
+        output$StructureRevenues_plt <- renderPlotly({ charts$StructureRevenues_plt })
         
       } else if (chart_type == "Structure_Charts") {
         cat("Preparing Structure_Charts charts\n")
         source("Scripts/PIT/Charts-StructureGrossIncome.R")
         #Charts_structure <- Structure_GrossIncome_Charts(long_labor_capital, labor_capital_type, long_labor_capital_type, gross_nace_tbl)
-        Charts_structure <- Structure_GrossIncome_Charts(long_labor_capital,labor_capital_type,long_labor_capital_type, forecast_horizon)
+        Charts_structure <- Structure_GrossIncome_Charts(structure_gross_inc,structure_pit,long_df, SimulationYear)
 
         output$infoBox1 <- renderInfoBox({
           cat("Rendering infoBox1\n")
@@ -804,20 +811,20 @@ server <- function(input, output, session) {
         output$additionalCharts <- renderUI({
           tagList(
             fluidRow(
-              column(6, plotlyOutput("labor_capital_plt", height = "400px")),
-              column(6, plotlyOutput("labor_capital_type_plt", height = "400px"))
+              column(6, plotlyOutput("structure_gross_inc_pie_plt", height = "400px")),
+              column(6, plotlyOutput("gross_inc_dec_plt", height = "400px"))
             ),
             fluidRow(
-              column(6, plotlyOutput("pit_bins_bu_sub_plt", height = "400px")),
-              column(6, plotlyOutput("treemap_nace_type_plt", height = "400px"))
+              column(6, plotlyOutput("structure_pit_inc_pie_plt", height = "400px")),
+              column(6, plotlyOutput("gross_pit_dec_plt", height = "400px"))
             )
           )
         })
         
-        output$labor_capital_plt <- renderPlotly({ Charts_structure$labor_capital_plt })
-        output$labor_capital_type_plt <- renderPlotly({ Charts_structure$labor_capital_type_plt })
-        output$pit_bins_bu_sub_plt <- renderPlotly({ Charts_structure$treemap_labor_capital_type_plt })
-        output$treemap_nace_type_plt <- renderPlotly({ Charts_structure$treemap_nace_type_plt })
+        output$structure_gross_inc_pie_plt <- renderPlotly({ Charts_structure$structure_gross_inc_pie_plt })
+        output$gross_inc_dec_plt <- renderPlotly({ Charts_structure$gross_inc_dec_plt })
+        output$structure_pit_inc_pie_plt <- renderPlotly({ Charts_structure$structure_pit_inc_pie_plt })
+        output$gross_pit_dec_plt <- renderPlotly({ Charts_structure$gross_pit_dec_plt })
         
       } else if (chart_type == "Distribution_Charts") {
         cat("Preparing Distribution_Charts charts\n")

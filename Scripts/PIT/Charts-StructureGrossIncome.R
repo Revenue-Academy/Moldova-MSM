@@ -7,153 +7,186 @@
 # I.Function for Dashboard ------------------------------------------------------------------
 
 #Structure_GrossIncome_Charts <- function(te_agg,te_labor_capital,nace_pit_summary_te,decile_pit_summary, forecast_horizon) {
-Structure_GrossIncome_Charts <- function(long_labor_capital,labor_capital_type,long_labor_capital_type, forecast_horizon) {
+Structure_GrossIncome_Charts <- function(structure_gross_inc,structure_pit,long_df, SimulationYear) {
 
 # I.Chart labor-capital -------------------------------------------------------------------------
 
+  structure_pit_inc_pie_plt <- plot_ly(
+                                      structure_pit,
+                                      labels = ~income_type,
+                                      values = ~value,
+                                      type = 'pie',
+                                      hole = 0.6,
+                                      textinfo = 'label+percent',
+                                      insidetextorientation = 'radial'
+                                    ) %>%
+                                      layout(
+                                        title = paste("Structure of PIT by categories,", SimulationYear),
+                                        showlegend = TRUE,  # Enable the legend
+                                        legend = list(
+                                          orientation = 'v',  # Vertical orientation (default)
+                                          x = 1.05,  # Move the legend slightly to the right of the chart
+                                          y = 0.5,  # Center the legend vertically
+                                          xanchor = 'left',
+                                          yanchor = 'middle',
+                                          font = list(size = 10)  # Adjust font size
+                                        ),
+                                        startangle = 90,  # Rotate the pie chart by 90 degrees clockwise
+                                        margin = list(l = 20, r = 20, t = 50, b = 50),  # Leave space for the annotation
+                                        annotations = list(
+                                          list(
+                                            x = 1.0,  # Keep the annotation centered below the chart
+                                            y = 0.0,  # Move the annotation further down to ensure labels don't overlap
+                                            text = "Source: WB staff estimation",
+                                            showarrow = FALSE,
+                                            xref = 'paper',
+                                            yref = 'paper',
+                                            xanchor = 'center',
+                                            yanchor = 'top',
+                                            font = list(size = 12)
+                                          )
+                                        )
+                                      )
   
-                    # Define custom colors for the gross income categories
-                    custom_colors <- c("labor" = '#1f77b4', "capital" = '#ff7f0e')
+  
+  
                     
-                    # Create a stacked bar chart with Plotly and custom colors
-                    labor_capital_plt <- plot_ly(long_labor_capital, 
-                                                        x = ~decile_group, 
-                                                        y = ~value, 
-                                                        color = ~gross_income, 
-                                                        colors = custom_colors,
-                                                        type = 'bar', 
-                                                        barmode = 'stack',
-                                                        textposition = 'inside',  # Position text inside the bars
-                                                        insidetextfont = list(color = 'white')  # Ensure text is readable inside bars
-                                                        ) %>%
-                                                          layout(title = "Total Gross Income by Decile Group and Type of Income",
-                                                                 xaxis = list(
-                                                                   title = " ",
-                                                                   tickvals = long_labor_capital$decile_group,
-                                                                   ticktext = long_labor_capital$decile_group
-                                                                 ),
-                                                                 yaxis = list(title = " "),
-                                                                 barmode = 'stack',
-                                                                 annotations = list(
-                                                                   x = -0.02,
-                                                                   y = -0.1,
-                                                                   text = "Source: WB staff estimation",
-                                                                   showarrow = FALSE,
-                                                                   xref = 'paper',
-                                                                   yref = 'paper',
-                                                                   align = 'left'
-                                                                 ))
-                    
-
 # II. Chart Type of Income --------------------------------
 
-                    #color_mapping <- c('#1f77b4', "cyan", "brown", "purple", "orange", "red", "chartreuse", "darkturquoise", "forestgreen")
-                    color_mapping <- c('#1f77b4', "cyan", "brown", "forestgreen","purple", "orange",  "chartreuse", "darkturquoise","red" )
-                    
-                    # Create a stacked bar chart with Plotly and custom colors
-                    labor_capital_type_plt <- plot_ly(labor_capital_type, 
-                                                 x = ~decile_group, 
-                                                 y = ~value, 
-                                                 color = ~gross_income, 
-                                                 colors = color_mapping,
-                                                 type = 'bar', 
-                                                 barmode = 'stack',
-                                                 textposition = 'inside',  # Position text inside the bars
-                                                 insidetextfont = list(color = 'white')  # Ensure text is readable inside bars
-                                                ) %>%
-                                                  layout(title = "Total Gross Income by Decile Group and Type of Income",
-                                                         xaxis = list(
-                                                           title = " ",
-                                                           tickvals = long_labor_capital$decile_group,
-                                                           ticktext = long_labor_capital$decile_group
-                                                         ),
-                                                         yaxis = list(title = " "),
-                                                         barmode = 'stack',
-                                                         annotations = list(
-                                                           x = -0.02,
-                                                           y = -0.1,
-                                                           text = "Source: WB staff estimation",
-                                                           showarrow = FALSE,
-                                                           xref = 'paper',
-                                                           yref = 'paper',
-                                                           align = 'left'
-                                                         ))
+  order_levels <- long_df_pit %>% 
+                  group_by(income_type) %>% 
+                  summarise(total = sum(value), .groups = "drop") %>% 
+                  arrange(desc(total)) %>%          # largest total first  → bottom
+                  pull(income_type)
+                
+                
+                
+                long_df_plot <- long_df_pit %>% 
+                  mutate(income_type = factor(income_type, levels = order_levels)) %>% 
+                  arrange(income_type)            
+                
+                
+                color_mapping <- c("#1f77b4", "orange", "red")
+                
+    gross_pit_dec_plt <- plot_ly(
+                  long_df_plot,
+                  x      = ~decile_group,
+                  y      = ~value,
+                  color  = ~income_type,
+                  colors = color_mapping,
+                  type   = "bar",
+                  barmode = "stack",
+                  textposition   = "inside",
+                  insidetextfont = list(color = "white")
+                ) %>% 
+                  layout(
+                    #title = "Total PIT by Decile Group and Type of Income",
+                    title = paste("Total PIT by Decile Group and Type of Income,", SimulationYear),
+                    xaxis = list(title = "", tickvals = long_df_plot$decile_group,
+                                 ticktext = long_df_plot$decile_group),
+                    yaxis = list(title = ""),
+                    barmode = "stack",
+                    annotations = list(
+                      x = -0.02, y = -0.1, text = "Source: WB staff estimation",
+                      showarrow = FALSE, xref = "paper", yref = "paper", align = "left"
+                    )
+                  )
 
 # III. Chart Treemap GROSS INCOME -------------------------------------------------------
     
                     
-                    treemap_labor_capital_type_plt <- plot_ly(data = long_labor_capital_type, 
-                                                        type = "treemap", 
-                                                        values = ~round(value/1e09,1), 
-                                                        labels = ~income_type,
-                                                        parents = ~TypeOfIncome,  
-                                                        name = " ",
-                                                        text = ~TypeOfIncome,
-                                                        textinfo = "label+value+percent parent")%>%
-                                                    layout(
-                              
-                                                      title = list(
-                                                        text = "Structure of Gross income by Type of Income",
-                                                        font = list(size = 14)  # Set the font size here
-                                                      ),
-                                                      annotations = list(
-                                                        x = 0.05,
-                                                        y = -0.01,
-                                                        text = "Source: WB staff estimation",
-                                                        showarrow = FALSE,
-                                                        xref = 'paper',
-                                                        yref = 'paper',
-                                                        xanchor = 'center',
-                                                        yanchor = 'top',
-                                                        font = list(size = 10)
-                                                      ))
+                    structure_gross_inc_pie_plt <- plot_ly(
+                                  structure_gross_inc,
+                                  labels = ~income_type,
+                                  values = ~value,
+                                  type = 'pie',
+                                  hole = 0.6,
+                                  textinfo = 'label+percent',
+                                  insidetextorientation = 'radial'
+                                ) %>%
+                                  layout(
+                                    title = paste("Structure of gross income by categories,", SimulationYear),
+                                    showlegend = TRUE,  # Enable the legend
+                                    legend = list(
+                                      orientation = 'v',  # Vertical orientation (default)
+                                      x = 1.05,  # Move the legend slightly to the right of the chart
+                                      y = 0.5,  # Center the legend vertically
+                                      xanchor = 'left',
+                                      yanchor = 'middle',
+                                      font = list(size = 10)  # Adjust font size
+                                    ),
+                                    startangle = 90,  # Rotate the pie chart by 90 degrees clockwise
+                                    margin = list(l = 20, r = 20, t = 50, b = 50),  # Leave space for the annotation
+                                    annotations = list(
+                                      list(
+                                        x = 1.0,  # Keep the annotation centered below the chart
+                                        y = 0.0,  # Move the annotation further down to ensure labels don't overlap
+                                        text = "Source: WB staff estimation",
+                                        showarrow = FALSE,
+                                        xref = 'paper',
+                                        yref = 'paper',
+                                        xanchor = 'center',
+                                        yanchor = 'top',
+                                        font = list(size = 12)
+                                      )
+                                    )
+                                  )
                                                   
                    # treemap_labor_capital_type_plt
                     
                     
 
-# IV. Structure of gross income by NACE sections-------------------------------------------
+# IV. Structure of gross income by decile group and type-------------------------------------------
 
-                    treemap_labor_capital_type_plt=treemap_labor_capital_type_plt
-                    treemap_nace_type_plt=labor_capital_type_plt
-                    # treemap_nace_type_plt <- plot_ly(
-                    #                             data = gross_nace_tbl, 
-                    #                             type = "treemap", 
-                    #                             values = ~round(g_total_gross / 1e09, 1), 
-                    #                             labels = ~nace_section,
-                    #                             parents = ~TypeOfIncome,  
-                    #                             name = " ",
-                    #                             text = ~TypeOfIncome,
-                    #                             hovertext = ~description,
-                    #                             textinfo = "label+value+percent parent",
-                    #                             hoverinfo = "label+value+percent parent+text"
-                    #                           ) %>%
-                    #                             layout(
-                    #                               title = list(
-                    #                                 text = "Structure of Gross income by NACE sections",
-                    #                                 font = list(size = 14)  # Set the font size here
-                    #                               ),
-                    #                               annotations = list(
-                    #                                 x = 0.05,
-                    #                                 y = -0.01,
-                    #                                 text = "Source: WB staff estimation",
-                    #                                 showarrow = FALSE,
-                    #                                 xref = 'paper',
-                    #                                 yref = 'paper',
-                    #                                 xanchor = 'center',
-                    #                                 yanchor = 'top',
-                    #                                 font = list(size = 10)
-                    #                               )
-                    #                             )
-
+                    order_levels <- long_df %>% 
+                      group_by(income_type) %>% 
+                      summarise(total = sum(value), .groups = "drop") %>% 
+                      arrange(desc(total)) %>%          # largest total first  → bottom
+                      pull(income_type)
+                    
+            
+                    
+                    long_df_plot <- long_df %>% 
+                      mutate(income_type = factor(income_type, levels = order_levels)) %>% 
+                      arrange(income_type)              # <--- **crucial for Plotly**
+                    
+         
+                    color_mapping <- c("#1f77b4", "orange", "red")
+                    
+                    gross_inc_dec_plt <- plot_ly(
+                                          long_df_plot,
+                                          x      = ~decile_group,
+                                          y      = ~value,
+                                          color  = ~income_type,
+                                          colors = color_mapping,
+                                          type   = "bar",
+                                          barmode = "stack",
+                                          textposition   = "inside",
+                                          insidetextfont = list(color = "white")
+                                        ) %>% 
+                                          layout(
+                                            #title = "Total Gross Income by Decile Group and Type of Income",
+                                            title = paste("Total Gross Income by Decile Group and Type of Income,", SimulationYear),
+                                            xaxis = list(title = "", tickvals = long_df_plot$decile_group,
+                                                         ticktext = long_df_plot$decile_group),
+                                            yaxis = list(title = ""),
+                                            barmode = "stack",
+                                            annotations = list(
+                                              x = -0.02, y = -0.1, text = "Source: WB staff estimation",
+                                              showarrow = FALSE, xref = "paper", yref = "paper", align = "left"
+                                            )
+                                          )
+                                        
+                    # treemap_labor_capital_type_plt= gross_inc_dec_plt
+                    # treemap_nace_type_plt=gross_inc_dec_plt
                     
 # Export Charts -----------------------------------------------------------
                     list(
                       # Charts
-                      labor_capital_plt=labor_capital_plt,
-                      labor_capital_type_plt=labor_capital_type_plt,
-                      treemap_labor_capital_type_plt=treemap_labor_capital_type_plt,
-                      treemap_nace_type_plt=treemap_nace_type_plt
+                      structure_gross_inc_pie_plt=structure_gross_inc_pie_plt,
+                      gross_inc_dec_plt=gross_inc_dec_plt,
+                      structure_pit_inc_pie_plt=structure_pit_inc_pie_plt,
+                      gross_pit_dec_plt=gross_pit_dec_plt
 
                     )
 }      

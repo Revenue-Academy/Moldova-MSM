@@ -39,17 +39,17 @@ Distribution_Charts <- function(pit_centile_distribution_bu_sim,pit_decile_distr
                                               #pit_decile_distribution_bu_sub, 
                                                pit_decile_distribution_bu_sim_raw,
                                               x = ~decile_group, 
-                                              y = ~sum_calc_pitax_bu, 
+                                              y = ~sum_calc_pitax_bu/1e06, 
                                               name = 'Baseline',
                                               marker = list(color = custom_colors[1]),
                                               hoverinfo = 'text+y', 
                                               type = 'bar', 
                                               barmode = 'group') %>%
-                                      add_trace(y = ~sum_calc_pitax_sim, 
+                                      add_trace(y = ~sum_calc_pitax_sim/1e06, 
                                                 name = 'Simulation', 
                                                 marker = list(color = custom_colors[2]),
                                                 hoverinfo = 'text+y') %>%
-                                      layout(title = paste("Tax Revenue by Decile Groups,", simulation_year),
+                                      layout(title = paste("Tax Revenue by Decile Groups in LCU MIL,", simulation_year),
                                              xaxis = list(title = "Decile", tickmode = 'linear'), 
                                              yaxis = list(title = " "),
                                              annotations = list(

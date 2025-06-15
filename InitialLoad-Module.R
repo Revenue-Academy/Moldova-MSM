@@ -1,14 +1,9 @@
 'Install packages and importing of data
                                           '
-
-
-
 'Step 1. Set your local path to the  model'
 rm(list = ls())
 
-path1<-"C:/Users/wb591157/OneDrive - WBG/Documents/WB/Countries/Moldova" ##<---PATH
-
-
+path1<-"C:/Users/wb591157/OneDrive - WBG/Documents/Models/Moldova-MSM" ##<---PUT YOU PATH HERE 
 
 # I.INSTALLING REQUIRED PACKAGES AND SETTING PATH  -------------------------------------------------
           '1.Library installation'
@@ -38,7 +33,8 @@ path1<-"C:/Users/wb591157/OneDrive - WBG/Documents/WB/Countries/Moldova" ##<---P
                                           "tidyr",
                                           "RColorBrewer",
                                           "Hmisc",
-                                          "openxlsx"
+                                          "openxlsx",
+                                          "forcats"
                                         )
 
 
@@ -67,81 +63,192 @@ path1<-"C:/Users/wb591157/OneDrive - WBG/Documents/WB/Countries/Moldova" ##<---P
         
         options(scipen = 999)
         
-       # load("pit_data.RData")
         
+        import_data <- file.path(path2, "FinalMergingVersion3-Max.RData")
         
-        #char_cols <- names(dt)[sapply(dt, is.character)]
+        # Load the RData file into the global environment
+        load(import_data)
         
  
-          dt <- read_csv("mda_dataset.csv", col_types = cols(
-                          cod_fiscal = col_character(), 
-                          tax_regime = col_character(),
-                          ai_17_Cod_DDF = col_character(), 
-                          ven12_legal_form_cdc = col_character(), 
-                          ven12_tp_category = col_character(), 
-                          ven12_exemption_idt = col_character(), 
-                          ven12_nace = col_character(), 
-                          daj17_tp_category = col_character(), 
-                          dass19_taxpayer_category = col_character(),
-                          ials21_nace = col_character(),
-                          unif21_legal_form_cdc = col_character(),
-                          unif21_nace = col_character()
-                        ))%>%data.table()
+        dt <-pit_dt%>%data.table()
+        
+        dt$dup_in_reg<-NULL
+        
+     
+
+      # 1.Column names for sub-setting ---------------------------------------------
+
+        # 1.1 Total gross income
+        total_income_cols <- c(
+                                "ai_17_r1c2",
+                                "cet18_c5c3",
+                                "daj17_r010",
+                                "dass19_r010",
+                                "unif21_t1r010",
+                                "ven12_r010",
+                                "ials21_sumven_cur_SAL",
+                                "ials21_sumven_cur_FOL_WH",
+                                "ials21_sumven_cur_PLS_WH",
+                                "ials21_sumven_cur_PL_WH",
+                                "ials21_sumven_cur_ROY_WH",
+                                "ials21_sumven_cur_DONPF_WH",
+                                "ials21_sumven_cur_DON_P_WH",
+                                "ials21_sumven_cur_RCSA_WH",
+                                "ials21_sumven_cur_DOBBA_WH",
+                                "ials21_sumven_cur_DOB_WH",
+                                "ials21_sumven_cur_VMS_WH",
+                                "ials21_sumven_cur_DON_WH",
+                                "ials21_sumven_cur_LIV_WH",
+                                "ials21_sumven_cur_NOR_WH",
+                                "ials21_sumven_cur_CSM_WH",
+                                "ials21_sumven_cur_AGRAC_WH",
+                                "ials21_sumven_cur_SER_WH",
+                                "ials21_sumven_cur_PLT_WH",
+                                "ials21_sumven_cur_DIVA_WH"
+                              )
+
+        # 1.2 Gross income wages
+        income_wage_cols <- c(
+                              "ials21_sumven_cur_SAL"
+                                )
+
        
+        # Investment
+        income_investment_cols  <- c(
+                                     "ials21_sumven_cur_FOL_WH",
+                                     "ials21_sumven_cur_PLS_WH",
+                                      "ials21_sumven_cur_PL_WH",
+                                      "ials21_sumven_cur_ROY_WH",
+                                      "ials21_sumven_cur_DONPF_WH",
+                                      "ials21_sumven_cur_DON_P_WH",
+                                      "ials21_sumven_cur_RCSA_WH",
+                                      "ials21_sumven_cur_DOBBA_WH",
+                                      "ials21_sumven_cur_DOB_WH",
+                                      "ials21_sumven_cur_VMS_WH",
+                                      "ials21_sumven_cur_DON_WH",
+                                      "ials21_sumven_cur_LIV_WH",
+                                      "ials21_sumven_cur_NOR_WH",
+                                      "ials21_sumven_cur_CSM_WH",
+                                      "ials21_sumven_cur_AGRAC_WH",
+                                      "ials21_sumven_cur_SER_WH",
+                                      "ials21_sumven_cur_PLT_WH",
+                                      "ials21_sumven_cur_DIVA_WH"
+                            )
+
+
+        # 1.3 Business
+        income_business_cols  <- c(
+                                  "ai_17_r1c2",
+                                  "cet18_c5c3",
+                                  "daj17_r010",
+                                  "dass19_r010",
+                                  "unif21_t1r010",
+                                  "ven12_r010"
+                                )
+
+
+        # 1.5 Base for progression ------------------------------------------------
+
         
-          #char_cols <- names(dt23)[sapply(dt23, is.character)]
+        income_investment_progression_cols  <- c(
+                                                "ials21_sumven_cur_FOL_WH",
+                                                "ials21_sumven_cur_PLS_WH",
+                                                "ials21_sumven_cur_PL_WH",
+                                                "ials21_sumven_cur_ROY_WH",
+                                                "ials21_sumven_cur_DONPF_WH",
+                                                "ials21_sumven_cur_DON_P_WH",
+                                                "ials21_sumven_cur_RCSA_WH",
+                                                "ials21_sumven_cur_DOBBA_WH",
+                                                "ials21_sumven_cur_DOB_WH",
+                                                "ials21_sumven_cur_VMS_WH",
+                                                "ials21_sumven_cur_DON_WH",
+                                                "ials21_sumven_cur_LIV_WH",
+                                                "ials21_sumven_cur_NOR_WH",
+                                                "ials21_sumven_cur_CSM_WH",
+                                                "ials21_sumven_cur_AGRAC_WH",
+                                                "ials21_sumven_cur_SER_WH",
+                                                "ials21_sumven_cur_PLT_WH",
+                                                "ials21_sumven_cur_DIVA_WH",
+                                                "ials21_sumimp_cur_TAXI_WH"
+                                              )
+                    
         
         
-       # write.csv(dt,"dt23.csv")
-        #dt<-pit_data$pit_dt%>%data.table()
+      # 1.4 Introducing of column for gross income ----------------------------------
         
-                          # 
-            #dt_test1<-read_csv("dt.csv")%>%data.table()
-            
-                          # dt<-read_csv("mpin_epdd_nace_final.csv")%>%data.table()
+        # total gross income per taxpayer 
+        dt[, total_income := rowSums(.SD, na.rm = TRUE),
+               .SDcols = total_income_cols]
+        
+        
+        # total income_investment_progression_cols
+        dt[, inv_base_prog := rowSums(.SD, na.rm = TRUE),
+           .SDcols = income_investment_progression_cols]
+        
+        
+        #  Base for Business
+        dt[, bus_base_prog := rowSums(.SD, na.rm = TRUE),
+           .SDcols = income_business_cols]
+        
+        
+        
+        
+        # Dataset is without duplicates and each taxpayer is represent only in one row 
+        # length(unique(dt$cod_fiscal))
+        # NROW(dt)
+
+      # 2.Preparation of subsets --------------------------------------------------
+
+        # Create frequency table sorted descending
+        tax_table <- sort(table(dt$tax_regime), decreasing = TRUE)
+        
+        # Convert to data frame for pretty printing
+        tax_df <- as.data.frame(tax_table)
+        colnames(tax_df) <- c("Tax Regime", "Count")
+        
+        # 1316445 unique taxpayers
+        
+        #  1316445/3- 438815 optimum number of dataset
+        
+        
+
+              # 2.1 Sub-setting prep ----------------------------------------------------------
+                        # --- 1) rows with ials21 + SAL > 0 ------------------------------------------
+                        subset1 <- dt %>% 
+                          filter(tax_regime == "ials21", ials21_sumven_cur_SAL > 0)
+                        
+                        sum(subset1$ials21_sumimp_cur_SAL)
+                        
+                        # --- 2) remaining rows with ials21 ------------------------------------------
+                        subset2 <- dt %>% 
+                          filter(tax_regime == "ials21") %>%              # still ials21 .
+                          anti_join(subset1, by = "cod_fiscal")           # . but not already in subset1
+                        
+                
+                                # test<-subset2%>%
+                        #   filter(cod_fiscal=="1142136036085")
                           
-                          MACRO_FISCAL_INDICATORS<-read_excel("macro_indicators.xlsx")
-                          
-                          
-                          # 2.Growth Factors & Scenario Mapping
-                          dt$Year<-NULL
-                          
-                          
-                          # ## ------------------  done  ------------------
-                          # growth_factors<-growth_factors%>%data.table()
-                          
-                          # base_year   <- 2023
-                          # w           <- 1.05
-                          # num_cols    <- names(dt)[sapply(dt, is.numeric)]
-                          # 
-                          # n_periods   <- 5                                 # 
-                          # 
-                          # growth_factors <- data.table(
-                          #   Year     = base_year + seq_len(n_periods),     # 2024 2028
-                          #   Scenario = paste0("t", 0:(n_periods - 1))      # t0  t4
-                          # )
-                          # 
-                          # # add the numeric columns and fill them with the weight
-                          # growth_factors[, (num_cols) := w]
-                          # setcolorder(growth_factors, c("Year", "Scenario", num_cols)) 
-                          # 
-                          # # set all numeric columns in the t0 row to 1 instead of 1.05
-                          # growth_factors[Scenario == "t0", (num_cols) := 1]
-                          # 
-                          # growth_factors$unif21_a1t1r120c3
-                          # 
-                          # 
-                          # write.csv(growth_factors,"growth_factors.csv")
-                          
-                          growth_factors <- read_csv("growth_factors.csv")%>%data.table()
-                          
-                          
-                          # 3.Weights
+                        
+        
+                        # --- 3) everything else ------------------------------------------------------
+                        subset3 <- dt %>% 
+                          anti_join(bind_rows(subset1, subset2), by = "cod_fiscal")
+                        
+                        # 577847+695829+42769=1316445
+      
+                # 2.2. Subset 1 ----------------------------------------------------------
+
+                        
+        dt1<-subset1
+        dt1 <- dt1 %>% select(where(~ !all(is.na(.))))
+        
+
+    #  Weights prep
 
                           
-                          n <- NROW(dt)
+                          n <- NROW(dt1)
                           
-                          weights_pit <- data.table(
+                          weights_pit1 <- data.table(
                                                     t0 = rep(1, n),
                                                     t1 = rep(1, n),
                                                     t2 = rep(1, n),
@@ -151,9 +258,85 @@ path1<-"C:/Users/wb591157/OneDrive - WBG/Documents/WB/Countries/Moldova" ##<---P
                                                   )
                           rm(n)
                           
-                          
-                          
-                  
+
+    dt1$Year<-2023
+    dt1[is.na(dt1)] <- 0
+    
+
+                # 2.3. Subset 2 ----------------------------------------------------------------
+                
+                
+                    dt2<-subset2    
+                    
+                    
+                    dt2 <- dt2 %>% select(where(~ !all(is.na(.))))
+                    
+                    
+                    
+                    
+                    # 1.Weights
+                    
+                    
+                    n <- NROW(dt2)
+                    
+                    weights_pit2 <- data.table(
+                      t0 = rep(1, n),
+                      t1 = rep(1, n),
+                      t2 = rep(1, n),
+                      t3 = rep(1, n),
+                      t4 = rep(1, n)
+                      
+                    )
+                    rm(n)
+                    
+                    
+                    dt2$Year<-2023
+                    dt2[is.na(dt2)] <- 0
+                    
+                
+                # 2.4. Subset 3 ----------------------------------------------------------------
+                
+                    dt3<-subset3    
+                    
+                    
+                    dt3 <- dt3 %>% select(where(~ !all(is.na(.))))
+                    
+                    
+                    
+                    
+                    # 1.Weights
+                    
+                    
+                    n <- NROW(dt3)
+                    
+                    weights_pit3 <- data.table(
+                      t0 = rep(1, n),
+                      t1 = rep(1, n),
+                      t2 = rep(1, n),
+                      t3 = rep(1, n),
+                      t4 = rep(1, n)
+                      
+                    )
+                    rm(n)
+                    
+                    
+                    dt3$Year<-2023
+                    dt3[is.na(dt3)] <- 0
+                    
+                
+                    
+                    
+            
+                      
+      # 3.Import other files ------------------------------------------------------
+    MACRO_FISCAL_INDICATORS<-read_excel("macro_indicators.xlsx")
+    
+    # 2.Growth Factors & Scenario Mapping
+    
+    growth_factors <- read_csv("growth_factors.csv")%>%data.table()
+    
+    
+    
     # NACE NAMES
     df_nace_names<-structure(list(section = c("A", "B", "C", "D", "E", "F", "G", 
                                               "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", 
@@ -171,22 +354,26 @@ path1<-"C:/Users/wb591157/OneDrive - WBG/Documents/WB/Countries/Moldova" ##<---P
                                               )), row.names = c(NA, -22L), class = c("tbl_df", "tbl", "data.frame"
                                               ))
     
-
-    # rm(pit_data)
-    # rm(numeric_data)
-    # rm(new_dt)
     
     
-    dt$Year<-2023
-    dt[is.na(dt)] <- 0
     
 # III. SAVE DATA IN R ENVIRONMENT (RDS FILE) --------------------------------------------------------
    
+    rm(subset1,subset2,subset3)
+    rm(pit_data)
+    rm(pit_dt)
+    rm(dt)
+    rm(tax_df)
+    
     gc(TRUE)             
-                  setwd(path1)
+    
+    
+   
+    
+  setwd(path1)
                   
                 
                   
-                  save.image(file=".RData") 
+save.image(file=".RData") 
           
                   
