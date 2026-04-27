@@ -35,14 +35,24 @@ tax_calc_fun <- function(dt_scn, params_dt) {
                       tbrk2 <- get_param_fun(params_dt, "tbrk2")
                       tbrk3 <- get_param_fun(params_dt, "tbrk3")
                       tbrk4 <- get_param_fun(params_dt, "tbrk4")
-                      rate_nat_per_art69_11         <- get_param_fun(params_dt, "rate_nat_per_art69_11")
-                      fix_nat_per_art69_11          <- get_param_fun(params_dt, "fix_nat_per_art69_11")
                       
-                      rate_indiv_art15a             <- get_param_fun(params_dt, "rate_indiv_art15a")
-                      rate_legal_art15b             <- get_param_fun(params_dt, "rate_legal_art15b")
-                      rate_farm_art15c              <- get_param_fun(params_dt, "rate_farm_art15c")
+                      ai_17_rate_nat_per_art69_11         <- get_param_fun(params_dt, "ai_17_rate_nat_per_art69_11")
+                      ai_17_fix_nat_per_art69_11          <- get_param_fun(params_dt, "ai_17_fix_nat_per_art69_11")
                       
-                      fixed_inc_tax                 <- get_param_fun(params_dt, "fixed_inc_tax")
+                      daj17_rate_indiv_art15a             <- get_param_fun(params_dt, "daj17_rate_indiv_art15a")
+                      
+                      dass19_rate_indiv_art15a             <- get_param_fun(params_dt, "dass19_rate_indiv_art15a")
+                      
+                      ven12_rate_indiv_art15a             <- get_param_fun(params_dt, "ven12_rate_indiv_art15a")
+                      
+                      
+                      ven12_rate_legal_art15b             <- get_param_fun(params_dt, "ven12_rate_legal_art15b")
+                      ven12_rate_farm_art15c              <- get_param_fun(params_dt, "ven12_rate_farm_art15c")
+                      
+                      unif21_rate_indiv_art15a              <- get_param_fun(params_dt, "unif21_rate_indiv_art15a")
+                      unif21_rate_farm_art15c              <- get_param_fun(params_dt, "unif21_rate_farm_art15c")
+                      
+                      taxi18_fixed_inc_tax                 <- get_param_fun(params_dt, "taxi18_fixed_inc_tax")
                       
                       rate_indiv_art69              <- get_param_fun(params_dt, "rate_indiv_art69")
                       rate_indiv_art71_90_par31     <- get_param_fun(params_dt, "rate_indiv_art71_90_par31")
@@ -71,16 +81,20 @@ tax_calc_fun <- function(dt_scn, params_dt) {
                       ex_dep_art35_par1             <- get_param_fun(params_dt, "ex_dep_art35_par1")
                       ex_dep_dis_art35_par2         <- get_param_fun(params_dt, "ex_dep_dis_art35_par2")
                       
-                      private_edu_exempt            <- get_param_fun(params_dt, "private_edu_exempt")
-                      payroll_growth_allow          <- get_param_fun(params_dt, "payroll_growth_allow")
-                      pension_fund_incentive        <- get_param_fun(params_dt, "pension_fund_incentive")
-                      fez_admin_exempt              <- get_param_fun(params_dt, "fez_admin_exempt")
-                      cadastral_exempt              <- get_param_fun(params_dt, "cadastral_exempt")
+                      ven12_private_edu_exempt            <- get_param_fun(params_dt, "ven12_private_edu_exempt")
+                      ven12_payroll_growth_allow          <- get_param_fun(params_dt, "ven12_payroll_growth_allow")
+                      ven12_pension_fund_incentive        <- get_param_fun(params_dt, "ven12_pension_fund_incentive")
+                      ven12_fez_admin_exempt              <- get_param_fun(params_dt, "ven12_fez_admin_exempt")
+                      ven12_cadastral_exempt              <- get_param_fun(params_dt, "ven12_cadastral_exempt")
                       
-                      fez_export_50pct              <- get_param_fun(params_dt, "fez_export_50pct")
-                      fez_5y_holiday_invest         <- get_param_fun(params_dt, "fez_5y_holiday_invest")
-                      fez_domestic_75pct            <- get_param_fun(params_dt, "fez_domestic_75pct")
-                      fez_5y_holiday_export         <- get_param_fun(params_dt, "fez_5y_holiday_export")
+                      ven12_fez_export_50pct              <- get_param_fun(params_dt, "ven12_fez_export_50pct")
+                      ven12_fez_5y_holiday_invest <- get_param_fun(params_dt, "ven12_fez_5y_holiday_invest")
+                      ven12_fez_domestic_75pct            <- get_param_fun(params_dt, "ven12_fez_domestic_75pct")
+                      
+                      cet18_rate_indiv_art15a<- get_param_fun(params_dt, "cet18_rate_indiv_art15a")
+                      
+                      
+                      #fez_5y_holiday_export         <- get_param_fun(params_dt, "fez_5y_holiday_export")
                       
                       toggle_progression_all         <- get_param_fun(params_dt, "toggle_progression_all")
                       toggle_progression_wages         <- get_param_fun(params_dt, "toggle_progression_wages")
@@ -90,8 +104,8 @@ tax_calc_fun <- function(dt_scn, params_dt) {
 
                       ###############################################################################
                       #  BUSINESS-INCOME FORMS (AI-17, DAJ-17, DASS-19, VEN-12, UNIF-21, TAXI-18, CET-18)
-                      #  ─────────────────────────────────────────────────────────────────────────────
-                      #  This is your *entire* section, UNCHANGED line-for-line up through each form’s
+                    
+                      #  This is your *entire* section, UNCHANGED line-for-line up through each form
                       #  per-form PIT calculation.  Nothing was removed or renamed.
                       ###############################################################################
                       
@@ -101,10 +115,11 @@ tax_calc_fun <- function(dt_scn, params_dt) {
                                "r6c2_calc", "r7c2_calc", "pit_ai_17", "r9c2_calc") :=
                                {
                                  ## Row 3 tax due at the reduced rate
-                                 r3 <- ai_17_r1c2 * rate_nat_per_art69_11
+                                 r3 <- ai_17_r1c2 * ai_17_rate_nat_per_art69_11
                                  
                                  ## Row 4 amount rounded to a multiple of the fixed unit
-                                 r4 <- (ai_17_r4c2 / fix_nat_per_art69_11) * fix_nat_per_art69_11
+                                 r4 <- (ai_17_r4c2 / 3000) * ai_17_fix_nat_per_art69_11
+                                 
                                  
                                  ## Row 5 larger of Row 3 and Row 4
                                  r5 <- pmax(r4, r3)
@@ -150,7 +165,8 @@ tax_calc_fun <- function(dt_scn, params_dt) {
                                  r100 <- r080 - daj17_r090
                                  r110 <- fifelse(r080 < 0, abs(r080), 0)
                                  
-                                 r130 <- r100 * rate_indiv_art15a                    # row 130
+                                 # r130 <- r100 * rate_indiv_art15a                    # row 130
+                                 r130 <- r100 * daj17_rate_indiv_art15a  
                                  coeff <- fifelse(is.na(daj17_r140) | r130 == 0, 0,  daj17_r140 / r130)
                                  r140 <- r130 * coeff
                                  r150 <- r130 - r140
@@ -185,7 +201,7 @@ tax_calc_fun <- function(dt_scn, params_dt) {
                                  
                                  r080 <- pmax(r040 - r050 - r060 - r070, 0)
                                  r100 <- r080 - dass19_r090
-                                 r130 <- r100 * rate_indiv_art15a
+                                 r130 <- r100 * dass19_rate_indiv_art15a
                                  
                                  list(r0101, r010, r040, r050, r060, tot, r070, r080, r100, r130)
                                }]
@@ -229,27 +245,28 @@ tax_calc_fun <- function(dt_scn, params_dt) {
                                  r100 <- fifelse(r040 < 0, abs(r040), 0)
                                  
                                  r120 <- fcase(
-                                   ven12_tp_category == 0, r090 * rate_indiv_art15a,
-                                   ven12_tp_category == 1, r090 * rate_indiv_art15a,
-                                   ven12_tp_category == 2, r090 * rate_farm_art15c,
-                                   default               =  r090 * rate_legal_art15b
+                                   ven12_tp_category == 0, r090 * ven12_rate_indiv_art15a,
+                                   ven12_tp_category == 1, r090 * ven12_rate_indiv_art15a,
+                                   ven12_tp_category == 2, r090 * ven12_rate_farm_art15c,
+                                   default               =  r090 * ven12_rate_legal_art15b
+                                 
                                  )
                                  
                                  te6d <- fcase(
-                                   ven12_exemption_idt == "6a", ven12_sumafacil * fez_export_50pct,
-                                   ven12_exemption_idt == "6r", ven12_sumafacil * fez_5y_holiday_invest,
-                                   ven12_exemption_idt == "6b", ven12_sumafacil * fez_domestic_75pct,
-                                   ven12_exemption_idt == "6d", ven12_sumafacil * fez_domestic_75pct,
+                                   ven12_exemption_idt == "6a", ven12_sumafacil * ven12_fez_export_50pct,
+                                   ven12_exemption_idt == "6r", ven12_sumafacil * ven12_fez_5y_holiday_invest,
+                                   ven12_exemption_idt == "6b", ven12_sumafacil * ven12_fez_domestic_75pct,
+                                   ven12_exemption_idt == "6d", ven12_sumafacil * ven12_fez_domestic_75pct,
                                    default                     = ven12_sumafacil
                                  )
                                  r130 <- te6d
                                  
                                  te4d <- fcase(
-                                   ven12_exemption_idt == "4c", ven12_sumafacil * private_edu_exempt,
-                                   ven12_exemption_idt == "4i", ven12_sumafacil * payroll_growth_allow,
-                                   ven12_exemption_idt == "4d", ven12_sumafacil * pension_fund_incentive,
-                                   ven12_exemption_idt == "4b", ven12_sumafacil * fez_admin_exempt,
-                                   ven12_exemption_idt == "4g", ven12_sumafacil * cadastral_exempt,
+                                   ven12_exemption_idt == "4c", ven12_sumafacil * ven12_private_edu_exempt,
+                                   ven12_exemption_idt == "4i", ven12_sumafacil * ven12_payroll_growth_allow,
+                                   ven12_exemption_idt == "4d", ven12_sumafacil * ven12_pension_fund_incentive,
+                                   ven12_exemption_idt == "4b", ven12_sumafacil * ven12_fez_admin_exempt,
+                                   ven12_exemption_idt == "4g", ven12_sumafacil * ven12_cadastral_exempt,
                                    default                     = ven12_sumafacil
                                  )
                                  r140 <- te4d
@@ -297,8 +314,8 @@ tax_calc_fun <- function(dt_scn, params_dt) {
                                  
                                  r120 <- fcase(
                                    r090 < 0,                                    0,
-                                   unif21_a1t1r120c3 %in% c(0, 12, 0.12),       r090 * rate_indiv_art15a,
-                                   unif21_a1t1r120c3 == 7,                      r090 * rate_farm_art15c,
+                                   unif21_a1t1r120c3 %in% c(0, 12, 0.12),       r090 * unif21_rate_indiv_art15a,
+                                   unif21_a1t1r120c3 == 7,                      r090 * unif21_rate_farm_art15c,
                                    default = NA_real_
                                  )
                                  
@@ -319,7 +336,7 @@ tax_calc_fun <- function(dt_scn, params_dt) {
                                
                                c8_calc <- fifelse(
                                  is.na(taxi18_t1c8_cur) | taxi18_t1c8_cur == 0,
-                                 0, (taxi18_t1c8_cur /  6000) * fixed_inc_tax)
+                                 0, (taxi18_t1c8_cur /  6000) * taxi18_fixed_inc_tax)
                                
                                c9_calc <- fifelse(
                                  is.na(taxi18_t1c9_cur) | taxi18_t1c9_cur == 0,
@@ -351,7 +368,7 @@ tax_calc_fun <- function(dt_scn, params_dt) {
                                  f2 <- cet18_f2
                                  f3 <- pmax(f2 - f1, 0)
                                  f4 <- f1 + f3
-                                 f5 <- f4 * rate_indiv_art15a
+                                 f5 <- f4 * cet18_rate_indiv_art15a
                                  
                                  list(d7, e1, e2, e3, e4,
                                       de, f1, f2, f3, f4, f5)
@@ -374,7 +391,7 @@ tax_calc_fun <- function(dt_scn, params_dt) {
                         bw1 <- pmax(tbrk2 - tbrk1, 0)
                         bw2 <- pmax(tbrk3 - tbrk2, 0)
                         
-                        prog_calc <-  rate_indiv_art15a * pmin(taxable, tbrk1) +
+                        prog_calc <-  rate1 * pmin(taxable, tbrk1) +
                           rate2                      * pmin(bw1, pmax(0, taxable - tbrk1)) +
                           rate3                      * pmin(bw2, pmax(0, taxable - tbrk2)) +
                           rate4                      * pmax(0, taxable - tbrk3)

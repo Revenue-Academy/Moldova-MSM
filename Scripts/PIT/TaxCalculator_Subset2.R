@@ -40,14 +40,24 @@ tax_calc_fun <- function(dt_scn, params_dt) {
                       tbrk2 <- get_param_fun(params_dt, "tbrk2")
                       tbrk3 <- get_param_fun(params_dt, "tbrk3")
                       tbrk4 <- get_param_fun(params_dt, "tbrk4")
-                      rate_nat_per_art69_11         <- get_param_fun(params_dt, "rate_nat_per_art69_11")
-                      fix_nat_per_art69_11          <- get_param_fun(params_dt, "fix_nat_per_art69_11")
                       
-                      rate_indiv_art15a             <- get_param_fun(params_dt, "rate_indiv_art15a")
-                      rate_legal_art15b             <- get_param_fun(params_dt, "rate_legal_art15b")
-                      rate_farm_art15c              <- get_param_fun(params_dt, "rate_farm_art15c")
+                      ai_17_rate_nat_per_art69_11         <- get_param_fun(params_dt, "ai_17_rate_nat_per_art69_11")
+                      ai_17_fix_nat_per_art69_11          <- get_param_fun(params_dt, "ai_17_fix_nat_per_art69_11")
                       
-                      fixed_inc_tax                 <- get_param_fun(params_dt, "fixed_inc_tax")
+                      daj17_rate_indiv_art15a             <- get_param_fun(params_dt, "daj17_rate_indiv_art15a")
+                      
+                      dass19_rate_indiv_art15a             <- get_param_fun(params_dt, "dass19_rate_indiv_art15a")
+                      
+                      ven12_rate_indiv_art15a             <- get_param_fun(params_dt, "ven12_rate_indiv_art15a")
+                      
+                      
+                      ven12_rate_legal_art15b             <- get_param_fun(params_dt, "ven12_rate_legal_art15b")
+                      ven12_rate_farm_art15c              <- get_param_fun(params_dt, "ven12_rate_farm_art15c")
+                      
+                      unif21_rate_indiv_art15a              <- get_param_fun(params_dt, "unif21_rate_indiv_art15a")
+                      unif21_rate_farm_art15c              <- get_param_fun(params_dt, "unif21_rate_farm_art15c")
+                      
+                      taxi18_fixed_inc_tax                 <- get_param_fun(params_dt, "taxi18_fixed_inc_tax")
                       
                       rate_indiv_art69              <- get_param_fun(params_dt, "rate_indiv_art69")
                       rate_indiv_art71_90_par31     <- get_param_fun(params_dt, "rate_indiv_art71_90_par31")
@@ -76,17 +86,18 @@ tax_calc_fun <- function(dt_scn, params_dt) {
                       ex_dep_art35_par1             <- get_param_fun(params_dt, "ex_dep_art35_par1")
                       ex_dep_dis_art35_par2         <- get_param_fun(params_dt, "ex_dep_dis_art35_par2")
                       
-                      private_edu_exempt            <- get_param_fun(params_dt, "private_edu_exempt")
-                      payroll_growth_allow          <- get_param_fun(params_dt, "payroll_growth_allow")
-                      pension_fund_incentive        <- get_param_fun(params_dt, "pension_fund_incentive")
-                      fez_admin_exempt              <- get_param_fun(params_dt, "fez_admin_exempt")
-                      cadastral_exempt              <- get_param_fun(params_dt, "cadastral_exempt")
+                      ven12_private_edu_exempt            <- get_param_fun(params_dt, "ven12_private_edu_exempt")
+                      ven12_payroll_growth_allow          <- get_param_fun(params_dt, "ven12_payroll_growth_allow")
+                      ven12_pension_fund_incentive        <- get_param_fun(params_dt, "ven12_pension_fund_incentive")
+                      ven12_fez_admin_exempt              <- get_param_fun(params_dt, "ven12_fez_admin_exempt")
+                      ven12_cadastral_exempt              <- get_param_fun(params_dt, "ven12_cadastral_exempt")
                       
-                      fez_export_50pct              <- get_param_fun(params_dt, "fez_export_50pct")
-                      fez_5y_holiday_invest         <- get_param_fun(params_dt, "fez_5y_holiday_invest")
-                      fez_domestic_75pct            <- get_param_fun(params_dt, "fez_domestic_75pct")
-                      fez_5y_holiday_export         <- get_param_fun(params_dt, "fez_5y_holiday_export")
+                      ven12_fez_export_50pct              <- get_param_fun(params_dt, "ven12_fez_export_50pct")
+                      ven12_fez_5y_holiday_invest <- get_param_fun(params_dt, "ven12_fez_5y_holiday_invest")
+                      ven12_fez_domestic_75pct            <- get_param_fun(params_dt, "ven12_fez_domestic_75pct")
                       
+                      #fez_5y_holiday_export         <- get_param_fun(params_dt, "fez_5y_holiday_export")
+                      cet18_rate_indiv_art15a<- get_param_fun(params_dt, "cet18_rate_indiv_art15a")
                       toggle_progression_all         <- get_param_fun(params_dt, "toggle_progression_all")
                       toggle_progression_wages         <- get_param_fun(params_dt, "toggle_progression_wages")
   
@@ -140,7 +151,7 @@ tax_calc_fun <- function(dt_scn, params_dt) {
                                bw1 <- pmax(tbrk2 - tbrk1, 0)
                                bw2 <- pmax(tbrk3 - tbrk2, 0)
                                
-                               prog_calc_second <- rate_indiv_art15a * pmin(taxable2, tbrk1) +
+                               prog_calc_second <- rate1 * pmin(taxable2, tbrk1) +
                                  rate2                         * pmin(bw1, pmax(0, taxable2 - tbrk1)) +
                                  rate3                         * pmin(bw2, pmax(0, taxable2 - tbrk2)) +
                                  rate4                         * pmax(0, taxable2 - tbrk3)

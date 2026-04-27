@@ -44,9 +44,12 @@ merged_PIT_BU_SIM <- combined_df %>%
                   use.names = TRUE, fill = TRUE
                 )%>%
                 filter(
-                  #gross_income>=0, 
-                  gross_income>=2000, 
-                  pitax>=0)
+                  gross_income>=10
+                  #gross_income>=2000,  ### <----- ovde e izmenata 12.07.2025
+                  #pitax>=0
+                  
+                  )
+                  
                 
                 
                 # 1.  Helper: add decile & centile groups  (unchanged)
@@ -85,10 +88,38 @@ merged_PIT_BU_SIM <- combined_df %>%
                 
                 # 2.  Apply to your single table
                
-                PIT_BU_selected <- calc_decile_percentile_fun(PIT_BU_dt)
-                          
-            
-            
+                 PIT_BU_selected <- calc_decile_percentile_fun(PIT_BU_dt)
+                           
+                 
+                # ### Additional checking
+                # # On level of taxpayers
+                # PIT_BU_selected_agg <- PIT_BU_selected %>%
+                #   dplyr::select(cod_fiscal,gross_income, centile_group, pitax) %>%
+                #   dplyr::group_by(cod_fiscal,centile_group) %>%
+                #   dplyr::mutate(
+                #     sum_pitax = sum(pitax),
+                #     sum_gross_income = sum(gross_income),
+                #     ETR = sum_pitax / sum_gross_income * 100
+                #   )
+                # 
+                # View(PIT_BU_selected_agg)
+                # # On level of centile group
+                # 
+                # PIT_BU_selected_agg <- PIT_BU_selected %>%
+                #   dplyr::select(gross_income, centile_group, pitax) %>%
+                #   dplyr::group_by(centile_group) %>%
+                #   dplyr::summarize(
+                #     sum_pitax = sum(pitax),
+                #     sum_gross_income = sum(gross_income),
+                #     ETR = (sum(pitax) / sum(gross_income)) * 100
+                #   )
+                # 
+                # 
+                # 
+                # 
+                # 
+                # View(PIT_BU_selected_agg)
+                
             #rm(PIT_BU_list)
       
       
@@ -103,21 +134,27 @@ merged_PIT_BU_SIM <- combined_df %>%
                   use.names = TRUE, fill = TRUE
                 )%>%
                 filter(
-                  #gross_income>=0,
-                  gross_income>=2000, 
-                  pitax>=0)
+                  gross_income>=10
+                  #gross_income>=2000, 
+                  #pitax>=0
+                  )
+                
       
                 
       
                 PIT_SIM_selected <- calc_decile_percentile_fun(PIT_SIM_dt)
       
       
+                
+# rm(PIT_BU_dt,PIT_BU_list1,PIT_BU_list2,PIT_BU_list3,
+#      PIT_SIM_list1,PIT_SIM_list2,PIT_SIM_list3,
+#      pit_summary_df1,pit_summary_df2,pit_summary_df3,
+#     dt_scn_BU,dt_scn_SIM
+#    )
 
-rm(PIT_BU_dt,PIT_BU_list1,PIT_BU_list2,PIT_BU_list3,
-     PIT_SIM_list1,PIT_SIM_list2,PIT_SIM_list3,
-     pit_summary_df1,pit_summary_df2,pit_summary_df3,
-    dt_scn_BU,dt_scn_SIM
-   )
-
-
+rm(PIT_BU_list1,PIT_BU_list2,PIT_BU_list3,
+   PIT_SIM_list1,PIT_SIM_list2,PIT_SIM_list3,
+   pit_summary_df1,pit_summary_df2,pit_summary_df3,
+   dt_scn_BU,dt_scn_SIM
+)
       
