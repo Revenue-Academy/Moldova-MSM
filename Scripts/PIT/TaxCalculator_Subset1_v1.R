@@ -326,6 +326,9 @@ tax_calc_wage_fun <- function(dt_scn, params_dt) {
   ex_dep_art35_par1     <- get_param_fun(params_dt, "ex_dep_art35_par1")
   ex_dep_dis_art35_par2 <- get_param_fun(params_dt, "ex_dep_dis_art35_par2")
   
+  tax_credit <- get_param_fun(params_dt, "tax_credit")
+  personal_allowance <- get_param_fun(params_dt, "personal_allowance")
+  
   wage_cols <- c(
     "wage_base_prog",
     "pit_wage_flat",
@@ -378,7 +381,13 @@ tax_calc_wage_fun <- function(dt_scn, params_dt) {
              (ials21_sumsc_h_cur_SAL  / 19800) * ex_dep_dis_art35_par2 +
              (ials21_sumven_cur_SAL           * ins_prem_art36_par6)
            
-           wage_base <- pmax(ials21_sumven_cur_SAL - deductions, 0)
+           wage_base <- pmax(
+             ials21_sumven_cur_SAL -
+               deductions -
+               tax_credit -
+               personal_allowance,
+             0
+           )
            
            wage_flat <- wage_base * rate1
            
@@ -529,6 +538,7 @@ keep_wage_cols <- c(
   "tax_regime",
   "year",
   "scenarios",
+  "ials21_sumven_cur_SAL",
   "wage_base_prog",
   "pit_wage_flat",
   "pit_ials21_sal",
@@ -545,6 +555,7 @@ PIT_BU_list1_all <- lapply(PIT_BU_list1_all, function(x) {
   x <- add_missing_numeric_cols(
     dt = x,
     cols = c(
+      "ials21_sumven_cur_SAL",
       "wage_base_prog",
       "pit_wage_flat",
       "pit_ials21_sal",
@@ -565,6 +576,7 @@ PIT_SIM_list1_all <- lapply(PIT_SIM_list1_all, function(x) {
   x <- add_missing_numeric_cols(
     dt = x,
     cols = c(
+      "ials21_sumven_cur_SAL",
       "wage_base_prog",
       "pit_wage_flat",
       "pit_ials21_sal",
@@ -587,6 +599,7 @@ make_wage_compat <- function(x) {
   x <- add_missing_numeric_cols(
     dt = x,
     cols = c(
+      "ials21_sumven_cur_SAL",
       "wage_base_prog",
       "pit_wage_flat",
       "pit_ials21_sal",
@@ -614,8 +627,8 @@ make_wage_compat <- function(x) {
   x[, .(
     cod_fiscal = cod_fiscal,
     tax_regime = tax_regime,
-    gross_income = wage_base_prog,
-    wages_inc = wage_base_prog,
+    gross_income = ials21_sumven_cur_SAL,
+    wages_inc = ials21_sumven_cur_SAL,
     investment_inc = 0,
     business_inc = 0,
     wages_pit = pit_wage_flat,
@@ -685,6 +698,7 @@ if ("pitax_flat_bu" %in% names(merged_PIT_BU_SIM1_raw)) {
 if ("pitax_flat_sim" %in% names(merged_PIT_BU_SIM1_raw)) {
   merged_PIT_BU_SIM1_raw[, pitax_sim := pitax_flat_sim]
 }
+
 # GUI summary uses RAW values and divides internally
 
 pit_summary_df1 <- build_pit_summary(

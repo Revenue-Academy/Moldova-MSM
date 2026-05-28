@@ -303,6 +303,30 @@ if (!all(forecast_horizon %in% pit_simulation_parameters_updated$Year)) {
   )
 }
 
+# X.1 Prepared income/distribution columns -----------------------------------
+# These columns are prepared in the master data-preparation script.
+# They are carried through Script 1 unchanged, except where they are also
+# included in vars_to_grow and corresponding growth factors exist.
+
+prepared_income_cols_script1 <- c(
+  "total_wage_income",
+  "total_investment_income",
+  "total_business_income",
+  "total_income",
+  "wage_base_prog_input",
+  "inv_base_prog",
+  "bus_base_prog",
+  "total_prog_base_wage_business",
+  "total_prog_base_wage_business_investment",
+  "decile_group",
+  "centile_group"
+)
+
+dt <- add_missing_numeric_cols(
+  dt = dt,
+  cols = prepared_income_cols_script1
+)
+
 # XI. Wage tax function ------------------------------------------------------
 
 tax_calc_wage_fun <- function(dt_scn, params_dt) {
@@ -325,6 +349,9 @@ tax_calc_wage_fun <- function(dt_scn, params_dt) {
   ex_spouse_art34_par2  <- get_param_fun(params_dt, "ex_spouse_art34_par2")
   ex_dep_art35_par1     <- get_param_fun(params_dt, "ex_dep_art35_par1")
   ex_dep_dis_art35_par2 <- get_param_fun(params_dt, "ex_dep_dis_art35_par2")
+  
+  tax_credit <- get_param_fun(params_dt, "tax_credit")
+  personal_allowance <- get_param_fun(params_dt, "personal_allowance")
   
   wage_cols <- c(
     "wage_base_prog",
@@ -378,7 +405,13 @@ tax_calc_wage_fun <- function(dt_scn, params_dt) {
              (ials21_sumsc_h_cur_SAL  / 19800) * ex_dep_dis_art35_par2 +
              (ials21_sumven_cur_SAL           * ins_prem_art36_par6)
            
-           wage_base <- pmax(ials21_sumven_cur_SAL - deductions, 0)
+           wage_base <- pmax(
+             ials21_sumven_cur_SAL -
+               deductions -
+               tax_credit -
+               personal_allowance,
+             0
+           )
            
            wage_flat <- wage_base * rate1
            
@@ -408,7 +441,7 @@ tax_calc_wage_fun <- function(dt_scn, params_dt) {
 
 # XII. Variables to grow -----------------------------------------------------
 
-vars_to_grow <- c(
+vars_to_grow_base <- c(
   "ials21_sumven_cur_SAL",
   "ials21_sumsc_p_cur_SAL",
   "ials21_sumsc_m_cur_SAL",
@@ -421,6 +454,26 @@ vars_to_grow <- c(
   "ials21_sumded2_cur_SAL",
   "total_income"
 )
+
+# Only add prepared variables to growth if the growth_factors table contains
+# their columns. This avoids changing the existing growth-factor requirement.
+
+prepared_vars_available_for_growth <- intersect(
+  c(
+    "total_wage_income",
+    "total_investment_income",
+    "total_business_income",
+    "wage_base_prog_input",
+    "total_prog_base_wage_business",
+    "total_prog_base_wage_business_investment"
+  ),
+  names(as.data.table(growth_factors))
+)
+
+vars_to_grow <- unique(c(
+  vars_to_grow_base,
+  prepared_vars_available_for_growth
+))
 
 # XIII. Business as usual ----------------------------------------------------
 
@@ -529,6 +582,18 @@ keep_wage_cols <- c(
   "tax_regime",
   "year",
   "scenarios",
+  "ials21_sumven_cur_SAL",
+  "total_wage_income",
+  "total_investment_income",
+  "total_business_income",
+  "total_income",
+  "wage_base_prog_input",
+  "inv_base_prog",
+  "bus_base_prog",
+  "total_prog_base_wage_business",
+  "total_prog_base_wage_business_investment",
+  "decile_group",
+  "centile_group",
   "wage_base_prog",
   "pit_wage_flat",
   "pit_ials21_sal",
@@ -545,6 +610,18 @@ PIT_BU_list1_all <- lapply(PIT_BU_list1_all, function(x) {
   x <- add_missing_numeric_cols(
     dt = x,
     cols = c(
+      "ials21_sumven_cur_SAL",
+      "total_wage_income",
+      "total_investment_income",
+      "total_business_income",
+      "total_income",
+      "wage_base_prog_input",
+      "inv_base_prog",
+      "bus_base_prog",
+      "total_prog_base_wage_business",
+      "total_prog_base_wage_business_investment",
+      "decile_group",
+      "centile_group",
       "wage_base_prog",
       "pit_wage_flat",
       "pit_ials21_sal",
@@ -565,6 +642,18 @@ PIT_SIM_list1_all <- lapply(PIT_SIM_list1_all, function(x) {
   x <- add_missing_numeric_cols(
     dt = x,
     cols = c(
+      "ials21_sumven_cur_SAL",
+      "total_wage_income",
+      "total_investment_income",
+      "total_business_income",
+      "total_income",
+      "wage_base_prog_input",
+      "inv_base_prog",
+      "bus_base_prog",
+      "total_prog_base_wage_business",
+      "total_prog_base_wage_business_investment",
+      "decile_group",
+      "centile_group",
       "wage_base_prog",
       "pit_wage_flat",
       "pit_ials21_sal",
@@ -587,6 +676,18 @@ make_wage_compat <- function(x) {
   x <- add_missing_numeric_cols(
     dt = x,
     cols = c(
+      "ials21_sumven_cur_SAL",
+      "total_wage_income",
+      "total_investment_income",
+      "total_business_income",
+      "total_income",
+      "wage_base_prog_input",
+      "inv_base_prog",
+      "bus_base_prog",
+      "total_prog_base_wage_business",
+      "total_prog_base_wage_business_investment",
+      "decile_group",
+      "centile_group",
       "wage_base_prog",
       "pit_wage_flat",
       "pit_ials21_sal",
@@ -614,8 +715,24 @@ make_wage_compat <- function(x) {
   x[, .(
     cod_fiscal = cod_fiscal,
     tax_regime = tax_regime,
-    gross_income = wage_base_prog,
-    wages_inc = wage_base_prog,
+    
+    total_wage_income = total_wage_income,
+    total_investment_income = total_investment_income,
+    total_business_income = total_business_income,
+    total_income = total_income,
+    
+    wage_base_prog_input = wage_base_prog_input,
+    inv_base_prog = inv_base_prog,
+    bus_base_prog = bus_base_prog,
+    total_prog_base_wage_business = total_prog_base_wage_business,
+    total_prog_base_wage_business_investment =
+      total_prog_base_wage_business_investment,
+    
+    decile_group = decile_group,
+    centile_group = centile_group,
+    
+    gross_income = ials21_sumven_cur_SAL,
+    wages_inc = ials21_sumven_cur_SAL,
     investment_inc = 0,
     business_inc = 0,
     wages_pit = pit_wage_flat,
@@ -654,7 +771,10 @@ summary_BU1 <- summarize_block_list(
     "pitax_flat",
     "pit_wage_flat",
     "pit_ials21_sal",
-    "wage_base_prog"
+    "wage_base_prog",
+    "total_wage_income",
+    "total_income",
+    "wage_base_prog_input"
   )
 )
 
@@ -665,7 +785,10 @@ summary_SIM1 <- summarize_block_list(
     "pitax_flat",
     "pit_wage_flat",
     "pit_ials21_sal",
-    "wage_base_prog"
+    "wage_base_prog",
+    "total_wage_income",
+    "total_income",
+    "wage_base_prog_input"
   )
 )
 
@@ -685,6 +808,7 @@ if ("pitax_flat_bu" %in% names(merged_PIT_BU_SIM1_raw)) {
 if ("pitax_flat_sim" %in% names(merged_PIT_BU_SIM1_raw)) {
   merged_PIT_BU_SIM1_raw[, pitax_sim := pitax_flat_sim]
 }
+
 # GUI summary uses RAW values and divides internally
 
 pit_summary_df1 <- build_pit_summary(
@@ -701,5 +825,47 @@ merged_PIT_BU_SIM1 <- format_merged_compat(
   merged_dt = merged_PIT_BU_SIM1_raw,
   forecast_horizon = forecast_horizon
 )
+
+# XVIII. Checks for prepared columns -----------------------------------------
+
+check_script1_prepared_cols <- data.table(
+  column = prepared_income_cols_script1,
+  exists_BU_t0 =
+    prepared_income_cols_script1 %in% names(PIT_BU_list1_all[[scenarios[1]]]),
+  exists_SIM_t0 =
+    prepared_income_cols_script1 %in% names(PIT_SIM_list1_all[[scenarios[1]]])
+)
+
+print(check_script1_prepared_cols[exists_BU_t0 == FALSE | exists_SIM_t0 == FALSE])
+
+check_script1_income_summary <- rbind(
+  PIT_BU_list1_all[[scenarios[1]]][
+    ,
+    .(
+      source = "BU",
+      scenario = scenarios[1],
+      total_income = sum(total_income * weight, na.rm = TRUE),
+      total_wage_income = sum(total_wage_income * weight, na.rm = TRUE),
+      wage_base_prog_input = sum(wage_base_prog_input * weight, na.rm = TRUE),
+      wage_base_prog = sum(wage_base_prog * weight, na.rm = TRUE),
+      pit_wage_flat = sum(pit_wage_flat * weight, na.rm = TRUE)
+    )
+  ],
+  PIT_SIM_list1_all[[scenarios[1]]][
+    ,
+    .(
+      source = "SIM",
+      scenario = scenarios[1],
+      total_income = sum(total_income * weight, na.rm = TRUE),
+      total_wage_income = sum(total_wage_income * weight, na.rm = TRUE),
+      wage_base_prog_input = sum(wage_base_prog_input * weight, na.rm = TRUE),
+      wage_base_prog = sum(wage_base_prog * weight, na.rm = TRUE),
+      pit_wage_flat = sum(pit_wage_flat * weight, na.rm = TRUE)
+    )
+  ],
+  fill = TRUE
+)
+
+print(check_script1_income_summary)
 
 message("Script 1 completed: wage objects created with year-specific parameters.")

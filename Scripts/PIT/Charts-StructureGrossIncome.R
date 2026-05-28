@@ -49,6 +49,9 @@ Structure_GrossIncome_Charts <- function(structure_gross_inc,structure_pit,long_
                                       )
   
   
+  structure_pit_inc_pie_plt <- structure_pit_inc_pie_plt %>%
+    config(displayModeBar = FALSE)
+  
   
                     
 # II. Chart Type of Income --------------------------------
@@ -92,6 +95,10 @@ Structure_GrossIncome_Charts <- function(structure_gross_inc,structure_pit,long_
                     )
                   )
 
+    gross_pit_dec_plt <- gross_pit_dec_plt %>%
+      config(displayModeBar = FALSE)
+    
+    
 # III. Chart Treemap GROSS INCOME -------------------------------------------------------
     
                     

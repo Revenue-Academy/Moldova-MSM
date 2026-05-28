@@ -207,6 +207,9 @@ tax_calc_business_fun <- function(dt_scn, params_dt) {
     stop("Missing input column in dt3: tax_regime")
   }
   
+  # Preserve business base before tax_credit and personal_allowance.
+  dt_scn[, bus_base_input := bus_base_prog]
+  
   rate1 <- get_param_fun(params_dt, "rate1")
   rate2 <- get_param_fun(params_dt, "rate2")
   rate3 <- get_param_fun(params_dt, "rate3")
@@ -215,6 +218,10 @@ tax_calc_business_fun <- function(dt_scn, params_dt) {
   tbrk1 <- get_param_fun(params_dt, "tbrk1")
   tbrk2 <- get_param_fun(params_dt, "tbrk2")
   tbrk3 <- get_param_fun(params_dt, "tbrk3")
+  
+  tax_credit <- get_param_fun(params_dt, "tax_credit")
+  personal_allowance <- get_param_fun(params_dt, "personal_allowance")
+  other_deduction <- get_param_fun(params_dt, "other_deduction")
   
   ai_17_rate_nat_per_art69_11 <- get_param_fun(params_dt, "ai_17_rate_nat_per_art69_11")
   ai_17_fix_nat_per_art69_11  <- get_param_fun(params_dt, "ai_17_fix_nat_per_art69_11")
@@ -377,83 +384,6 @@ tax_calc_business_fun <- function(dt_scn, params_dt) {
   
   # 4. Form VEN-12 ----------------------------------------------------------
   
-  # dt_scn[tax_regime == "ven12",
-  #        c("r010_calc", "r020_calc", "r030_calc", "r040_calc",
-  #          "r050_calc", "r060_calc", "tot_ded", "r0701_calc",
-  #          "r070_calc", "r080_calc", "r0901_calc", "r0902_calc", "r090_calc",
-  #          "r100_calc", "r120_calc",
-  #          "te_calc_6d", "r130_calc",
-  #          "te_calc_4d", "r140_calc",
-  #          "pit_ven12") := {
-  #            
-  #            r010 <- ven12_r0101 - ven12_r0102
-  #            r020 <- ven12_r020
-  #            r030 <- ven12_r030
-  #            r040 <- r010 + r020 - r030
-  #            
-  #            r050 <- fifelse(r040 <= 0 | is.na(ven12_r050) | ven12_r050 == 0,
-  #                            0, r040 * rate_don_lim_art36)
-  #            
-  #            r060 <- fifelse(is.na(ven12_r060) | ven12_r060 <= 0,
-  #                            0, ven12_r060 * rate_undoc_exp_art24)
-  #            
-  #            tot <- (ven12_totald3c6  / 27000) * per_ex_art33_par1 +
-  #              (ven12_totald3c7  / 31500) * per_ex_inc_art33_par2 +
-  #              (ven12_totald3c9  / 19800) * ex_spouse_art34_par2 +
-  #              (ven12_totald3c10 /  9000) * ex_dep_art35_par1 +
-  #              (ven12_totald3c11 / 19800) * ex_dep_dis_art35_par2
-  #            
-  #            r0701 <- fifelse(r040 - r050 - r060 > 0,
-  #                             pmin(tot, r040 - r050 - r060), 0)
-  #            
-  #            r070 <- fifelse(r040 - r050 - r060 < 0, 0, r040 - r050 - r060)
-  #            r080 <- fifelse(r070 < ven12_r080, r070, ven12_r080)
-  #            
-  #            r0901 <- r070 - r080
-  #            r0902 <- ven12_totald4c3
-  #            r090  <- r0901 - r0902
-  #            
-  #            r100 <- fifelse(r040 < 0, abs(r040), 0)
-  #            
-  #            r120 <- fcase(
-  #              ven12_tp_category == 0, r090 * ven12_rate_indiv_art15a,
-  #              ven12_tp_category == 1, r090 * ven12_rate_indiv_art15a,
-  #              ven12_tp_category == 2, r090 * ven12_rate_farm_art15c,
-  #              default = r090 * ven12_rate_legal_art15b
-  #            )
-  #            
-  #            te6d <- fcase(
-  #              ven12_exemption_idt == "6a", ven12_sumafacil * ven12_fez_export_50pct,
-  #              ven12_exemption_idt == "6r", ven12_sumafacil * ven12_fez_5y_holiday_invest,
-  #              ven12_exemption_idt == "6b", ven12_sumafacil * ven12_fez_domestic_75pct,
-  #              ven12_exemption_idt == "6d", ven12_sumafacil * ven12_fez_domestic_75pct,
-  #              default = ven12_sumafacil
-  #            )
-  #            
-  #            r130 <- te6d
-  #            
-  #            te4d <- fcase(
-  #              ven12_exemption_idt == "4c", ven12_sumafacil * ven12_private_edu_exempt,
-  #              ven12_exemption_idt == "4i", ven12_sumafacil * ven12_payroll_growth_allow,
-  #              ven12_exemption_idt == "4d", ven12_sumafacil * ven12_pension_fund_incentive,
-  #              ven12_exemption_idt == "4b", ven12_sumafacil * ven12_fez_admin_exempt,
-  #              ven12_exemption_idt == "4g", ven12_sumafacil * ven12_cadastral_exempt,
-  #              default = ven12_sumafacil
-  #            )
-  #            
-  #            r140 <- te4d
-  #            r150 <- r120 - r130
-  #            
-  #            list(r010, r020, r030, r040,
-  #                 r050, r060, tot, r0701,
-  #                 r070, r080, r0901, r0902, r090,
-  #                 r100, r120,
-  #                 te6d, r130,
-  #                 te4d, r140,
-  #                 r150)
-  #          }]
-  
-  
   dt_scn[tax_regime == "ven12",
          c("r010_calc", "r020_calc", "r030_calc", "r040_calc",
            "r050_calc", "r060_calc", "tot_ded", "r0701_calc",
@@ -549,7 +479,6 @@ tax_calc_business_fun <- function(dt_scn, params_dt) {
                   te4d, r140,
                   r150)
            }]
-  
   
   # 5. Form UNIF-21 ---------------------------------------------------------
   
@@ -653,10 +582,10 @@ tax_calc_business_fun <- function(dt_scn, params_dt) {
                            (cet18_e2 / 14700) * contr_soc_mand, 0)
              
              e3 <- fifelse(is.na(cet18_e3), 0, cet18_e3)
-             e4 <- e1 + e2 + e3
+             e4 <- e1 + e2 + (e3 * other_deduction)
              de <- d7 + e4
              
-             f1 <- pmax(cet18_c1c3 - de, 0)
+             f1 <- pmax(cet18_c5c3 - de, 0)
              
              f2 <- cet18_f2
              f3 <- pmax(f2 - f1, 0)
@@ -776,7 +705,12 @@ tax_calc_business_fun <- function(dt_scn, params_dt) {
   dt_scn[, pit_bus_flat := rowSums(.SD, na.rm = TRUE),
          .SDcols = bus_pit_cols]
   
-  dt_scn[, bus_base_prog := pmax(bus_base_prog, 0)]
+  dt_scn[, bus_base_prog := pmax(
+    bus_base_prog -
+      tax_credit -
+      personal_allowance,
+    0
+  )]
   
   dt_scn[, pit_bus_prog_standalone := calc_progressive_tax(
     taxable = bus_base_prog,
@@ -902,6 +836,7 @@ keep_bus_cols <- c(
   "tax_regime",
   "year",
   "scenarios",
+  "bus_base_input",
   "bus_base_prog",
   "pit_bus_flat",
   "pit_bus_prog_standalone",
@@ -919,6 +854,7 @@ PIT_BU_list3_all <- lapply(PIT_BU_list3_all, function(x) {
   x <- add_missing_numeric_cols(
     dt = x,
     cols = c(
+      "bus_base_input",
       "bus_base_prog",
       "pit_bus_flat",
       "pit_bus_prog_standalone",
@@ -940,6 +876,7 @@ PIT_SIM_list3_all <- lapply(PIT_SIM_list3_all, function(x) {
   x <- add_missing_numeric_cols(
     dt = x,
     cols = c(
+      "bus_base_input",
       "bus_base_prog",
       "pit_bus_flat",
       "pit_bus_prog_standalone",
@@ -963,6 +900,7 @@ make_bus_compat <- function(x) {
   x <- add_missing_numeric_cols(
     dt = x,
     cols = c(
+      "bus_base_input",
       "bus_base_prog",
       "pit_bus_flat",
       "pit_bus_prog_standalone",
@@ -985,10 +923,10 @@ make_bus_compat <- function(x) {
   x[, .(
     cod_fiscal = cod_fiscal,
     tax_regime = tax_regime,
-    gross_income = bus_base_prog,
+    gross_income = bus_base_input,
     wages_inc = 0,
     investment_inc = 0,
-    business_inc = bus_base_prog,
+    business_inc = bus_base_input,
     wages_pit = 0,
     investment_pit = 0,
     business_pit = pit_bus_flat,
@@ -1023,6 +961,7 @@ summary_BU3 <- summarize_block_list(
   value_cols = c(
     "pitax_flat",
     "pit_bus_flat",
+    "bus_base_input",
     "bus_base_prog",
     "pit_cet18",
     cet18_component_cols
@@ -1035,6 +974,7 @@ summary_SIM3 <- summarize_block_list(
   value_cols = c(
     "pitax_flat",
     "pit_bus_flat",
+    "bus_base_input",
     "bus_base_prog",
     "pit_cet18",
     cet18_component_cols

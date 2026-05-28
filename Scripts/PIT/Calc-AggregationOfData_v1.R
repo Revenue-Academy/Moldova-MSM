@@ -289,6 +289,7 @@ combine_pit_one_scenario <- function(wage_dt,
   toggle_progression_all   <- get_param_fun(params_dt, "toggle_progression_all")
   
   wage_needed <- c(
+    "ials21_sumven_cur_SAL",
     "wage_base_prog",
     "pit_wage_flat",
     "pit_wage_prog_standalone",
@@ -296,6 +297,7 @@ combine_pit_one_scenario <- function(wage_dt,
   )
   
   inv_needed <- c(
+    "inv_base_input",
     "inv_base_prog",
     "pit_inv_flat",
     "pit_inv_prog_standalone",
@@ -303,6 +305,7 @@ combine_pit_one_scenario <- function(wage_dt,
   )
   
   bus_needed <- c(
+    "bus_base_input",
     "bus_base_prog",
     "pit_bus_flat",
     "pit_bus_prog_standalone",
@@ -341,6 +344,9 @@ combine_pit_one_scenario <- function(wage_dt,
       "weight_wage",
       "weight_inv",
       "weight_bus",
+      "ials21_sumven_cur_SAL_wage",
+      "inv_base_input_inv",
+      "bus_base_input_bus",
       "wage_base_prog_wage",
       "inv_base_prog_inv",
       "bus_base_prog_bus",
@@ -369,6 +375,15 @@ combine_pit_one_scenario <- function(wage_dt,
   out[, wage_base_prog := pmax(wage_base_prog_wage, 0)]
   out[, inv_base_prog  := pmax(inv_base_prog_inv, 0)]
   out[, bus_base_prog  := pmax(bus_base_prog_bus, 0)]
+  
+  out[, wage_gross_income := pmax(ials21_sumven_cur_SAL_wage, 0)]
+  out[, inv_gross_income  := pmax(inv_base_input_inv, 0)]
+  out[, bus_gross_income  := pmax(bus_base_input_bus, 0)]
+  
+  out[, total_gross_income :=
+        wage_gross_income +
+        inv_gross_income +
+        bus_gross_income]
   
   out[, total_prog_base :=
         wage_base_prog +
@@ -543,6 +558,10 @@ summarize_combined_pit <- function(PIT_list, suffix) {
       "cet18_wage_pit",
       "cet18_inv_pit",
       "cet18_total_pit",
+      "wage_gross_income",
+      "inv_gross_income",
+      "bus_gross_income",
+      "total_gross_income",
       "wage_base_prog",
       "inv_base_prog",
       "bus_base_prog",
@@ -585,6 +604,11 @@ summarize_combined_pit <- function(PIT_list, suffix) {
         cet18_wage_pit = sum(cet18_wage_pit * weight, na.rm = TRUE),
         cet18_inv_pit = sum(cet18_inv_pit * weight, na.rm = TRUE),
         cet18_total_pit = sum(cet18_total_pit * weight, na.rm = TRUE),
+        
+        wage_gross_income = sum(wage_gross_income * weight, na.rm = TRUE),
+        inv_gross_income = sum(inv_gross_income * weight, na.rm = TRUE),
+        bus_gross_income = sum(bus_gross_income * weight, na.rm = TRUE),
+        total_gross_income = sum(total_gross_income * weight, na.rm = TRUE),
         
         wage_base_prog = sum(wage_base_prog * weight, na.rm = TRUE),
         inv_base_prog = sum(inv_base_prog * weight, na.rm = TRUE),
@@ -728,6 +752,10 @@ make_combined_microdata <- function(dt) {
   
   needed_cols <- c(
     "cod_fiscal",
+    "total_gross_income",
+    "wage_gross_income",
+    "inv_gross_income",
+    "bus_gross_income",
     "total_prog_base",
     "wage_base_prog",
     "inv_base_prog",
@@ -764,11 +792,16 @@ make_combined_microdata <- function(dt) {
       cod_fiscal = cod_fiscal,
       tax_regime = "combined_pit",
       
-      gross_income = total_prog_base,
+      gross_income = total_gross_income,
       
-      wages_inc = wage_base_prog,
-      investment_inc = inv_base_prog,
-      business_inc = bus_base_prog,
+      wages_inc = wage_gross_income,
+      investment_inc = inv_gross_income,
+      business_inc = bus_gross_income,
+      
+      total_prog_base = total_prog_base,
+      wage_base_prog = wage_base_prog,
+      inv_base_prog = inv_base_prog,
+      bus_base_prog = bus_base_prog,
       
       wages_pit = pit_wage_flat,
       investment_pit = pit_inv_flat,
@@ -888,8 +921,8 @@ message("Final combined PIT progression script completed with year-specific para
 #   - uses fixed BU centile/decile groups for BU and SIM
 #   - compares the same taxpayers across BU and SIM
 #   - uses weighted sums
-#   - still uses gross_income column from PIT_BU_selected / PIT_SIM_selected
-#     NOTE: in your final combine script gross_income currently equals total_prog_base
+#   - gross_income now uses total_gross_income before tax_credit/personal_allowance
+#     while total_prog_base remains the taxable/progressive base
 
 library(data.table)
 library(dplyr)
@@ -1212,8 +1245,7 @@ pit_decile_distribution_bu_sim <- pit_decile_distribution_bu_sim %>%
   ))
 
 # VI. PIT distribution table by income breaks --------------------------------
-# Important: this still uses current gross_income variable.
-# If gross_income = total_prog_base, then bins are based on taxable/prog base.
+# Uses gross_income based on original gross/base values before tax credits.
 
 breaks <- c(
   -Inf,
@@ -1635,8 +1667,7 @@ calc_re_indicators <- function(dt, scenario_label) {
   dt <- dt[
     !is.na(gross_income) &
       !is.na(pitax) &
-      gross_income > 0 &
-      pitax > 0
+      gross_income > 0
   ]
   
   if (nrow(dt) == 0) {
@@ -1818,9 +1849,6 @@ objects_to_remove <- c(
   "PIT_SIM_dist",
   "PIT_BU_list2",
   "PIT_SIM_list2"
-  
-  
-  
 )
 
 rm(list = intersect(objects_to_remove, ls()))

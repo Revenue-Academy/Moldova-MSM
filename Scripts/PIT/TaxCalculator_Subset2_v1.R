@@ -89,6 +89,8 @@ tax_calc_investment_fun <- function(dt_scn, params_dt) {
   tbrk2 <- get_param_fun(params_dt, "tbrk2")
   tbrk3 <- get_param_fun(params_dt, "tbrk3")
   
+  tax_credit <- get_param_fun(params_dt, "tax_credit")
+  
   rate_indiv_art69       <- get_param_fun(params_dt, "rate_indiv_art69")
   rate_int_art89         <- get_param_fun(params_dt, "rate_int_art89")
   rate_adv_art90_par2    <- get_param_fun(params_dt, "rate_adv_art90_par2")
@@ -99,21 +101,21 @@ tax_calc_investment_fun <- function(dt_scn, params_dt) {
   rate_win_art90_1par33  <- get_param_fun(params_dt, "rate_win_art90_1par33")
   rate_nat_art90_1par35  <- get_param_fun(params_dt, "rate_nat_art90_1par35")
   rate_comm_art90_1par36 <- get_param_fun(params_dt, "rate_comm_art90_1par36")
-  rate_exmp              <- get_param_fun(params_dt, "rate_exmp")
+  #rate_exmp              <- get_param_fun(params_dt, "rate_exmp")
   
   input_cols <- c(
     "ials21_sumven_cur_FOL_WH",
-    "ials21_sumven_cur_PLS_WH",
+    #"ials21_sumven_cur_PLS_WH",
     "ials21_sumven_cur_PL_WH",
     "ials21_sumven_cur_ROY_WH",
     "ials21_sumven_cur_DONPF_WH",
     "ials21_sumven_cur_DON_P_WH",
-    "ials21_sumven_cur_RCSA_WH",
+    # "ials21_sumven_cur_RCSA_WH",
     "ials21_sumven_cur_DOBBA_WH",
     "ials21_sumven_cur_DOB_WH",
     "ials21_sumven_cur_VMS_WH",
     "ials21_sumimp_cur_DIVA_WH",
-    "ials21_sumven_cur_DON_WH",
+    #"ials21_sumven_cur_DON_WH",
     "ials21_sumven_cur_LIV_WH",
     "ials21_sumven_cur_NOR_WH",
     "ials21_sumven_cur_CSM_WH",
@@ -185,44 +187,109 @@ tax_calc_investment_fun <- function(dt_scn, params_dt) {
            "pitax"
          ) := {
            
-           fol_wh_calc   <- ials21_sumven_cur_FOL_WH   * rate_indiv_art90_1par3
-           pls_exmp_calc <- ials21_sumven_cur_PLS_WH   * rate_exmp ## <--- ovde 
-           pl_wh_calc    <- ials21_sumven_cur_PL_WH    * rate_adv_art90_par2
-           roy_wh_calc   <- ials21_sumven_cur_ROY_WH   * rate_roy_art90_1par31
-           donpf_wh_calc <- ials21_sumven_cur_DONPF_WH * rate_don_art90_1par31
-           don_p_wh_calc <- ials21_sumven_cur_DON_P_WH * rate_don_art90_1par31
-           rcsa_wh_calc  <- ials21_sumven_cur_RCSA_WH  * rate_exmp
-           dobba_wh_calc <- ials21_sumven_cur_DOBBA_WH * rate_int_art89
-           dob_wh_calc   <- ials21_sumven_cur_DOB_WH   * rate_int_art89
-           vms_wh_calc   <- ials21_sumven_cur_VMS_WH   * rate_int_art89
-           div_wh_calc   <- ials21_sumimp_cur_DIVA_WH  * rate_div_art90_1par31
-           don_wh_calc   <- ials21_sumven_cur_DON_WH   * rate_exmp ## <--- ovde 
-           liv_wh_calc   <- ials21_sumven_cur_LIV_WH   * rate_nat_art90_1par35
-           nor_wh_calc   <- ials21_sumven_cur_NOR_WH   * rate_win_art90_1par33
-           csm_wh_calc   <- ials21_sumven_cur_CSM_WH   * rate_comm_art90_1par36
-           agrac_wh_calc <- ials21_sumven_cur_AGRAC_WH * rate_indiv_art69
-           ser_wh_calc   <- ials21_sumven_cur_SER_WH   * rate_indiv_art90_1par3
+           fol_wh_calc <- pmax(
+             ials21_sumven_cur_FOL_WH - tax_credit,
+             0
+           ) * rate_indiv_art90_1par3
+           
+           pls_exmp_calc <- 0
+           #pls_exmp_calc <- ials21_sumven_cur_PLS_WH   * rate_exmp ## <--- ovde 
+           
+           pl_wh_calc <- pmax(
+             ials21_sumven_cur_PL_WH - tax_credit,
+             0
+           ) * rate_adv_art90_par2
+           
+           roy_wh_calc <- pmax(
+             ials21_sumven_cur_ROY_WH - tax_credit,
+             0
+           ) * rate_roy_art90_1par31
+           
+           donpf_wh_calc <- pmax(
+             ials21_sumven_cur_DONPF_WH - tax_credit,
+             0
+           ) * rate_don_art90_1par31
+           
+           don_p_wh_calc <- pmax(
+             ials21_sumven_cur_DON_P_WH - tax_credit,
+             0
+           ) * rate_don_art90_1par31
+           
+           rcsa_wh_calc <- 0
+           # rcsa_wh_calc  <- ials21_sumven_cur_RCSA_WH  * rate_exmp
+           
+           dobba_wh_calc <- pmax(
+             ials21_sumven_cur_DOBBA_WH - tax_credit,
+             0
+           ) * rate_int_art89
+           
+           dob_wh_calc <- pmax(
+             ials21_sumven_cur_DOB_WH - tax_credit,
+             0
+           ) * rate_int_art89
+           
+           vms_wh_calc <- pmax(
+             ials21_sumven_cur_VMS_WH - tax_credit,
+             0
+           ) * rate_int_art89
+           
+           div_wh_calc <- pmax(
+             ials21_sumimp_cur_DIVA_WH - tax_credit,
+             0
+           ) * rate_div_art90_1par31
+           
+           don_wh_calc <- 0
+           #don_wh_calc   <- ials21_sumven_cur_DON_WH   * rate_exmp ## <--- ovde 
+           
+           liv_wh_calc <- pmax(
+             ials21_sumven_cur_LIV_WH - tax_credit,
+             0
+           ) * rate_nat_art90_1par35
+           
+           nor_wh_calc <- pmax(
+             ials21_sumven_cur_NOR_WH - tax_credit,
+             0
+           ) * rate_win_art90_1par33
+           
+           csm_wh_calc <- pmax(
+             ials21_sumven_cur_CSM_WH - tax_credit,
+             0
+           ) * rate_comm_art90_1par36
+           
+           agrac_wh_calc <- pmax(
+             ials21_sumven_cur_AGRAC_WH - tax_credit,
+             0
+           ) * rate_indiv_art69
+           
+           ser_wh_calc <- pmax(
+             ials21_sumven_cur_SER_WH - tax_credit,
+             0
+           ) * rate_indiv_art90_1par3
            
            inv_flat <-
-                           fol_wh_calc +
-                           pls_exmp_calc +
-                           pl_wh_calc +
-                           roy_wh_calc +
-                           donpf_wh_calc +
-                           don_p_wh_calc +
-                           rcsa_wh_calc +
-                           dobba_wh_calc +
-                           dob_wh_calc +
-                           vms_wh_calc +
-                           div_wh_calc +
-                           don_wh_calc +
-                           liv_wh_calc +
-                           nor_wh_calc +
-                           csm_wh_calc +
-                           agrac_wh_calc +
-                           ser_wh_calc
+             fol_wh_calc +
+             pls_exmp_calc +
+             pl_wh_calc +
+             roy_wh_calc +
+             donpf_wh_calc +
+             don_p_wh_calc +
+             rcsa_wh_calc +
+             dobba_wh_calc +
+             dob_wh_calc +
+             vms_wh_calc +
+             div_wh_calc +
+             don_wh_calc +
+             liv_wh_calc +
+             nor_wh_calc +
+             csm_wh_calc +
+             agrac_wh_calc +
+             ser_wh_calc
            
-           inv_base <- pmax(inv_base_input, 0)
+           inv_base <- pmax(
+             inv_base_input -
+               tax_credit,
+             0
+           )
            
            inv_prog <- calc_progressive_tax(
              taxable = inv_base,
@@ -261,8 +328,6 @@ tax_calc_investment_fun <- function(dt_scn, params_dt) {
            )
          }]
   
-  dt_scn[, inv_base_input := NULL]
-  
   dt_scn[]
 }
 
@@ -274,11 +339,11 @@ vars_to_grow <- c(
   "ials21_sumven_cur_PL_WH",
   "ials21_sumven_cur_ROY_WH",
   "ials21_sumven_cur_DONPF_WH",
-  "ials21_sumven_cur_RCSA_WH",
+  #"ials21_sumven_cur_RCSA_WH",
   "ials21_sumven_cur_DOBBA_WH",
   "ials21_sumven_cur_VMS_WH",
-  "ials21_sumven_cur_PLS_WH",
-  "ials21_sumven_cur_DON_WH",
+  #"ials21_sumven_cur_PLS_WH",
+  #"ials21_sumven_cur_DON_WH",
   "ials21_sumven_cur_LIV_WH",
   "ials21_sumven_cur_NOR_WH",
   "ials21_sumven_cur_DOB_WH",
@@ -398,6 +463,7 @@ keep_inv_cols <- c(
   "tax_regime",
   "year",
   "scenarios",
+  "inv_base_input",
   "inv_base_prog",
   "pit_inv_flat",
   "pit_inv_prog_standalone",
@@ -413,6 +479,7 @@ PIT_BU_list2_all <- lapply(PIT_BU_list2_all, function(x) {
   x <- add_missing_numeric_cols(
     dt = x,
     cols = c(
+      "inv_base_input",
       "inv_base_prog",
       "pit_inv_flat",
       "pit_inv_prog_standalone",
@@ -432,6 +499,7 @@ PIT_SIM_list2_all <- lapply(PIT_SIM_list2_all, function(x) {
   x <- add_missing_numeric_cols(
     dt = x,
     cols = c(
+      "inv_base_input",
       "inv_base_prog",
       "pit_inv_flat",
       "pit_inv_prog_standalone",
@@ -453,6 +521,7 @@ make_inv_compat <- function(x) {
   x <- add_missing_numeric_cols(
     dt = x,
     cols = c(
+      "inv_base_input",
       "inv_base_prog",
       "pit_inv_flat",
       "pit_inv_prog_standalone",
@@ -473,9 +542,9 @@ make_inv_compat <- function(x) {
   x[, .(
     cod_fiscal = cod_fiscal,
     tax_regime = tax_regime,
-    gross_income = inv_base_prog,
+    gross_income = inv_base_input,
     wages_inc = 0,
-    investment_inc = inv_base_prog,
+    investment_inc = inv_base_input,
     business_inc = 0,
     wages_pit = 0,
     investment_pit = pit_inv_flat,
@@ -559,4 +628,5 @@ merged_PIT_BU_SIM2 <- format_merged_compat(
   forecast_horizon = forecast_horizon
 )
 
+gc()
 message("Script 2 completed: investment objects created with year-specific parameters.")
