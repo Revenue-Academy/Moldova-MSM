@@ -920,6 +920,35 @@ dt3[
 ]
 
 
+objects_to_remove <- c(
+  "assigned_ids",
+  "business_ids",
+  "business_regimes",
+  "cet18_ids",
+  "check_centile_groups",
+  "check_decile_groups",
+  "check_income_column_lists",
+  "check_income_columns",
+  "check_income_columns_long",
+  "check_investment_vs_inv_base_prog",
+  "check_negative_salary_after",
+  "check_negative_salary_before",
+  "check_total_income_identity",
+  "missing_income_cols",
+  "num_cols_dt1",
+  "num_cols_dt2",
+  "priority_ids",
+  "regime_count_all_subsets",
+  "required_income_cols",
+  "subset_business",
+  "subset_cet18",
+  "subset1_ids",
+  "tax_table",
+  "total_income_value"
+)
+
+rm(list = objects_to_remove)
+
 
 # 3.Import other files ------------------------------------------------------
 MACRO_FISCAL_INDICATORS<-read_excel("macro_indicators.xlsx")
@@ -964,7 +993,6 @@ rm(tax_df)
 rm(subset1_dt,subset2_dt,subset3_dt)
 
 gc(TRUE)             
-
 
 
 

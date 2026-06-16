@@ -732,10 +732,10 @@ server <- function(input, output, session) {
     
     future({
       
-      source("Scripts/PIT/TaxCalculator_Subset1_v2.R")
+      source("Scripts/PIT/TaxCalculator_Subset1_v3.R")
       source("Scripts/PIT/TaxCalculator_Subset2_v2.R")
-      source("Scripts/PIT/TaxCalculator_Subset3_v2.R")
-      source("Scripts/PIT/Calc-AggregationOfData_v2.R")
+      source("Scripts/PIT/TaxCalculator_Subset3_v3.R")
+      source("Scripts/PIT/Calc-AggregationOfData_v3.R")
       #source("Scripts/PIT/Calc-Distribution-Effects.R")
       #source("Scripts/PIT/Calc-Structure.R")
       #source("Scripts/PIT/Calc-Redistribution-Effects.R")
